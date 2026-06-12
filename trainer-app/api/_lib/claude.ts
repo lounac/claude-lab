@@ -77,33 +77,42 @@ export interface ResearchResult {
   fetchedAt: string
 }
 
-const RESEARCH_SYSTEM = `Du bist ein Recherche-Assistent, der Menschen auf Vorstellungsgespräche vorbereitet. Du erhältst die Website-URL einer Firma. Recherchiere die Firma mit der Web-Suche und erstelle ein kompaktes, faktenbasiertes Briefing auf Deutsch.
+const RESEARCH_SYSTEM = `Du bist ein Recherche-Assistent, der Menschen bei der Jobsuche und der Vorbereitung auf Vorstellungsgespräche unterstützt. Du erhältst die Website-URL einer Firma. Recherchiere die Firma gründlich mit der Web-Suche – nutze ausdrücklich auch die Karriere-/Job-Seite der Firma (z. B. /karriere, /jobs, /stellenangebote) sowie Job-Portale (LinkedIn, StepStone, Indeed, Glassdoor) – und erstelle ein ausführliches, faktenbasiertes Briefing auf Deutsch.
 
-Gib AUSSCHLIESSLICH Markdown in genau dieser Struktur zurück:
+Gib AUSSCHLIESSLICH Markdown in genau dieser Struktur zurück (Abschnitte ohne Inhalt weglassen):
 
 # <Firmenname>
 
 ## Überblick
-Was macht die Firma? Branche, Tätigkeit, ggf. Größe/Standort.
+Was macht die Firma? Branche, Gründung, Größe, Umsatz, Standorte.
 
 ## Produkte & Dienstleistungen
-Wichtigste Angebote.
+Wichtigste Angebote und Leistungen.
+
+## Abteilungen & Bereiche
+Welche Abteilungen, Fachbereiche oder Teams gibt es (z. B. Entwicklung, Beratung, Design, Data/AI, Vertrieb, HR …)?
+
+## Aktuelle Projekte & Technologien
+Aktuelle (Software-)Projekte, Kundenprojekte und Referenzen. Welche Technologien, Programmiersprachen und Tools setzt die Firma ein (Tech-Stack)?
+
+## Offene Stellen & gesuchte Profile
+Welche Stellen sind aktuell ausgeschrieben? Liste konkrete Jobtitel auf – mit besonderem Fokus auf Softwareentwicklung/IT. In welchen Bereichen oder Projekten werden Entwickler:innen gesucht? Welche Anforderungen/Technologien werden genannt? Wenn möglich, mit Link zur Stellenanzeige.
+
+## Für Bewerber:innen relevant
+Arbeitsmodell (Remote/Hybrid/Büro), Benefits, Einstiegsmöglichkeiten (Praktikum/Werkstudent/Junior), Bewerbungsprozess und an welchen Standorten gesucht wird – alles, was für eine bewerbende Person nützlich ist.
 
 ## Werte & Kultur
-Leitbild, Werte, Arbeitsweise – soweit auffindbar.
-
-## Aktuelles
-Relevante Neuigkeiten/Entwicklungen, falls vorhanden – sonst diesen Abschnitt weglassen.
+Leitbild, Werte, Arbeitsweise.
 
 ## Mögliche Interview-Themen
-3–5 Stichpunkte, die im Gespräch relevant sein könnten.
+3–6 Stichpunkte, die im Gespräch relevant sein könnten.
 
 ## Quellen
-Liste der genutzten Webseiten als Aufzählung.
+Liste der genutzten Webseiten als Aufzählung (inkl. Karriere-/Job-Seiten).
 
 Regeln:
-- Nutze nur Informationen aus den Suchergebnissen. Erfinde nichts.
-- Wenn du etwas nicht findest, schreibe kurz, dass dazu keine verlässlichen Infos gefunden wurden.
+- Nutze nur Informationen aus den Suchergebnissen. Erfinde nichts – besonders keine erfundenen Stellenausschreibungen.
+- Stellenangebote ändern sich häufig: Wenn du keine aktuellen Stellen findest, sage das offen und verweise auf die Karriere-Seite.
 - Gib KEINE Vorrede und keine Erklärung deines Vorgehens aus.
 - Die allererste Zeile MUSS die Überschrift mit dem reinen Firmennamen sein: "# Firmenname".`
 
@@ -125,7 +134,7 @@ export async function runResearch(input: ResearchInput): Promise<ResearchResult>
 
   let response = await client.messages.create({
     model: MODEL,
-    max_tokens: 3000,
+    max_tokens: 4000,
     system: RESEARCH_SYSTEM,
     tools: [{ type: 'web_search_20260209', name: 'web_search' }],
     messages,
@@ -137,7 +146,7 @@ export async function runResearch(input: ResearchInput): Promise<ResearchResult>
     messages.push({ role: 'assistant', content: response.content })
     response = await client.messages.create({
       model: MODEL,
-      max_tokens: 3000,
+      max_tokens: 4000,
       system: RESEARCH_SYSTEM,
       tools: [{ type: 'web_search_20260209', name: 'web_search' }],
       messages,
