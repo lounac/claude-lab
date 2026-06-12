@@ -29,11 +29,16 @@ export default function LearnMode() {
     const trimmed = url.trim()
     if (!trimmed) return
 
+    // "www.jambit.com" oder "jambit.com" um https:// ergänzen
+    const normalized = /^https?:\/\//i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`
+
     setLoading(true)
     setError(null)
     try {
       const result = await postJSON<CompanyKnowledge>('/api/research', {
-        url: trimmed,
+        url: normalized,
       })
       saveCompany(result)
       setCompanies(loadCompanies())
@@ -69,10 +74,11 @@ export default function LearnMode() {
 
       <form onSubmit={handleResearch} className="mb-6 flex flex-wrap gap-2">
         <input
-          type="url"
+          type="text"
+          inputMode="url"
           value={url}
           onChange={(event) => setUrl(event.target.value)}
-          placeholder="https://www.firma.de"
+          placeholder="z. B. www.jambit.com"
           disabled={loading}
           className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 disabled:bg-slate-100"
         />

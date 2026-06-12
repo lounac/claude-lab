@@ -108,10 +108,12 @@ Regeln:
 - Die allererste Zeile MUSS die Überschrift mit dem reinen Firmennamen sein: "# Firmenname".`
 
 export async function runResearch(input: ResearchInput): Promise<ResearchResult> {
-  const url = input?.url?.trim()
-  if (!url) {
+  const raw = input?.url?.trim()
+  if (!raw) {
     throw new ApiError(400, 'Bitte gib eine Firmen-URL an.')
   }
+  // "www.jambit.com" oder "jambit.com" um https:// ergänzen
+  const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
 
   const client = getClient()
   const messages: Anthropic.MessageParam[] = [
