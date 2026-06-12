@@ -171,3 +171,71 @@ export async function runResearch(input: ResearchInput): Promise<ResearchResult>
 
   return { name, summary, url, fetchedAt: new Date().toISOString() }
 }
+
+// ---------------------------------------------------------------------------
+// Nachfrage zu einer bereits recherchierten Firma (Firmenwissen-Modus)
+// ---------------------------------------------------------------------------
+
+export interface FollowupInput {
+  question: string
+  name?: string
+  url?: string
+  summary?: string
+}
+
+const FOLLOWUP_SYSTEM = `Du beantwortest eine konkrete Frage zu einer Firma – für eine Person, die sich dort bewirbt. Nutze die Web-Suche, wenn die Antwort dadurch genauer oder aktueller wird. Antworte knapp, sachlich und faktenbasiert auf Deutsch in Markdown.
+
+Wichtig:
+- Verwende KEINE eigene Hauptüberschrift (die Antwort wird in ein bestehendes Dokument eingefügt).
+- Wenn du etwas nicht sicher findest, sage das ehrlich. Erfinde nichts.`
+
+export async function runFollowup(
+  input: FollowupInput,
+): Promise<{ answer: string }> {
+  const question = input?.question?.trim()
+  if (!question) {
+    throw new ApiError(400, 'Bitte gib eine Frage ein.')
+  }
+
+  const client = getClient()
+  const context = input.summary
+    ? `\n\nZum Kontext – das bisherige Briefing zur Firma:\n\n${input.summary}`
+    : ''
+  const messages: Anthropic.MessageParam[] = [
+    {
+      role: 'user',
+      content: `Beantworte folgende Frage zur Firma ${input.name ?? ''} (${input.url ?? ''}):\n\n"${question}"${context}`,
+    },
+  ]
+
+  let response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1500,
+    system: FOLLOWUP_SYSTEM,
+    tools: [{ type: 'web_search_20260209', name: 'web_search' }],
+    messages,
+  })
+
+  let guard = 0
+  while (response.stop_reason === 'pause_turn' && guard < 6) {
+    messages.push({ role: 'assistant', content: response.content })
+    response = await client.messages.create({
+      model: MODEL,
+      max_tokens: 1500,
+      system: FOLLOWUP_SYSTEM,
+      tools: [{ type: 'web_search_20260209', name: 'web_search' }],
+      messages,
+    })
+    guard++
+  }
+
+  const answer = extractText(response.content)
+  if (!answer) {
+    throw new ApiError(
+      502,
+      'Es konnte keine Antwort ermittelt werden. Bitte formuliere die Frage anders.',
+    )
+  }
+
+  return { answer }
+}
