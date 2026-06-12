@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { runChat, ApiError } from './_lib/claude'
+import { runChat, ApiError } from './_lib/claude.js'
 
 // Vercel Serverless Function: POST /api/chat
 export default async function handler(req: VercelRequest, res: VercelResponse) {
