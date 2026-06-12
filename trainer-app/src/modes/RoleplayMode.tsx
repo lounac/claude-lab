@@ -1,18 +1,28 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { postJSON } from '../lib/api'
-import { loadCompany } from '../lib/storage'
+import {
+  loadCompanies,
+  loadActiveCompany,
+  setActiveCompanyUrl,
+} from '../lib/storage'
 import type { ChatMessage } from '../types'
+import CompanySelector from '../components/CompanySelector'
 
 export default function RoleplayMode() {
-  const company = loadCompany()
+  const [companies] = useState(() => loadCompanies())
+  const [activeUrl, setActiveUrl] = useState<string | null>(
+    () => loadActiveCompany()?.url ?? null,
+  )
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [started, setStarted] = useState(false)
 
-  if (!company) {
+  const active = companies.find((c) => c.url === activeUrl) ?? null
+
+  if (!active) {
     return (
       <div>
         <h2 className="mb-2 text-2xl font-bold">🎤 Interview-Rollenspiel</h2>
@@ -26,7 +36,7 @@ export default function RoleplayMode() {
     )
   }
 
-  const system = `Du bist eine erfahrene, freundliche, aber fordernde interviewende Person der Firma ${company.name}. Führe ein realistisches Bewerbungsgespräch auf Deutsch.
+  const system = `Du bist eine erfahrene, freundliche, aber fordernde interviewende Person der Firma ${active.name}. Führe ein realistisches Bewerbungsgespräch auf Deutsch.
 
 Regeln:
 - Stelle immer nur EINE Frage pro Nachricht.
@@ -36,7 +46,16 @@ Regeln:
 
 Nutze dieses Wissen über die Firma als Kontext:
 
-${company.summary}`
+${active.summary}`
+
+  function selectCompany(nextUrl: string) {
+    setActiveCompanyUrl(nextUrl)
+    setActiveUrl(nextUrl)
+    setMessages([])
+    setStarted(false)
+    setInput('')
+    setError(null)
+  }
 
   async function runTurn(history: ChatMessage[]) {
     setMessages(history)
@@ -86,10 +105,17 @@ ${company.summary}`
   return (
     <div>
       <h2 className="mb-2 text-2xl font-bold">🎤 Interview-Rollenspiel</h2>
+
+      <CompanySelector
+        companies={companies}
+        activeUrl={activeUrl}
+        onChange={selectCompany}
+      />
+
       <p className="mb-4 text-slate-600">
         Übe ein Bewerbungsgespräch bei{' '}
-        <span className="font-medium text-slate-700">{company.name}</span>.
-        Claude spielt die interviewende Person.
+        <span className="font-medium text-slate-700">{active.name}</span>. Claude
+        spielt die interviewende Person.
       </p>
 
       {!started ? (
@@ -107,11 +133,13 @@ ${company.summary}`
               <div
                 key={i}
                 className={
-                  m.role === 'assistant' ? 'flex justify-start' : 'flex justify-end'
+                  m.role === 'assistant'
+                    ? 'flex justify-start'
+                    : 'flex justify-end'
                 }
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2 whitespace-pre-wrap ${
+                  className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2 ${
                     m.role === 'assistant'
                       ? 'bg-slate-100 text-slate-800'
                       : 'bg-violet-600 text-white'

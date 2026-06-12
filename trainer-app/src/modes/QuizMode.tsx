@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { postJSON } from '../lib/api'
-import { loadCompany } from '../lib/storage'
+import {
+  loadCompanies,
+  loadActiveCompany,
+  setActiveCompanyUrl,
+} from '../lib/storage'
+import CompanySelector from '../components/CompanySelector'
 
 interface QuizQuestion {
   question: string
@@ -38,14 +43,19 @@ function parseQuestions(text: string): QuizQuestion[] {
 }
 
 export default function QuizMode() {
-  const company = loadCompany()
+  const [companies] = useState(() => loadCompanies())
+  const [activeUrl, setActiveUrl] = useState<string | null>(
+    () => loadActiveCompany()?.url ?? null,
+  )
   const [questions, setQuestions] = useState<QuizQuestion[] | null>(null)
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (!company) {
+  const active = companies.find((c) => c.url === activeUrl) ?? null
+
+  if (!active) {
     return (
       <div>
         <h2 className="mb-2 text-2xl font-bold">❓ Quiz</h2>
@@ -59,7 +69,16 @@ export default function QuizMode() {
     )
   }
 
-  const companySummary = company.summary
+  const activeSummary = active.summary
+
+  function selectCompany(nextUrl: string) {
+    setActiveCompanyUrl(nextUrl)
+    setActiveUrl(nextUrl)
+    setQuestions(null)
+    setAnswers({})
+    setSubmitted(false)
+    setError(null)
+  }
 
   async function startQuiz() {
     setLoading(true)
@@ -71,7 +90,7 @@ export default function QuizMode() {
       const res = await postJSON<{ text: string }>('/api/chat', {
         system: QUIZ_SYSTEM,
         messages: [
-          { role: 'user', content: `Firmen-Briefing:\n\n${companySummary}` },
+          { role: 'user', content: `Firmen-Briefing:\n\n${activeSummary}` },
         ],
         maxTokens: 1800,
       })
@@ -96,9 +115,16 @@ export default function QuizMode() {
   return (
     <div>
       <h2 className="mb-2 text-2xl font-bold">❓ Quiz</h2>
+
+      <CompanySelector
+        companies={companies}
+        activeUrl={activeUrl}
+        onChange={selectCompany}
+      />
+
       <p className="mb-4 text-slate-600">
         Teste dein Wissen über{' '}
-        <span className="font-medium text-slate-700">{company.name}</span>.
+        <span className="font-medium text-slate-700">{active.name}</span>.
       </p>
 
       {!questions && (

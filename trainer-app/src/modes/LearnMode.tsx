@@ -1,16 +1,28 @@
 import { useState, type FormEvent } from 'react'
 import { postJSON } from '../lib/api'
-import { loadCompany, saveCompany, clearCompany } from '../lib/storage'
+import {
+  loadCompanies,
+  saveCompany,
+  removeCompany,
+  loadActiveCompany,
+  setActiveCompanyUrl,
+} from '../lib/storage'
 import type { CompanyKnowledge } from '../types'
 import Markdown from '../components/Markdown'
+import CompanySelector from '../components/CompanySelector'
 
 export default function LearnMode() {
+  const [companies, setCompanies] = useState<CompanyKnowledge[]>(() =>
+    loadCompanies(),
+  )
+  const [activeUrl, setActiveUrl] = useState<string | null>(
+    () => loadActiveCompany()?.url ?? null,
+  )
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [company, setCompany] = useState<CompanyKnowledge | null>(() =>
-    loadCompany(),
-  )
+
+  const active = companies.find((c) => c.url === activeUrl) ?? null
 
   async function handleResearch(event: FormEvent) {
     event.preventDefault()
@@ -24,7 +36,8 @@ export default function LearnMode() {
         url: trimmed,
       })
       saveCompany(result)
-      setCompany(result)
+      setCompanies(loadCompanies())
+      setActiveUrl(result.url)
       setUrl('')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unbekannter Fehler')
@@ -33,17 +46,25 @@ export default function LearnMode() {
     }
   }
 
-  function handleClear() {
-    clearCompany()
-    setCompany(null)
+  function handleSelect(nextUrl: string) {
+    setActiveCompanyUrl(nextUrl)
+    setActiveUrl(nextUrl)
+  }
+
+  function handleRemove() {
+    if (!active) return
+    removeCompany(active.url)
+    setCompanies(loadCompanies())
+    setActiveUrl(loadActiveCompany()?.url ?? null)
   }
 
   return (
     <div>
       <h2 className="mb-2 text-2xl font-bold">📚 Firmenwissen lernen</h2>
       <p className="mb-4 text-slate-600">
-        Gib die Website deiner Wunsch-Firma ein. Die App recherchiert
-        automatisch die wichtigsten Infos für dein Interview.
+        Gib die Website einer Firma ein – die App recherchiert automatisch die
+        wichtigsten Infos für dein Interview. Die letzten 10 Firmen werden
+        gespeichert und stehen in Quiz &amp; Rollenspiel zur Auswahl.
       </p>
 
       <form onSubmit={handleResearch} className="mb-6 flex flex-wrap gap-2">
@@ -65,7 +86,7 @@ export default function LearnMode() {
       </form>
 
       {loading && (
-        <p className="text-slate-500">
+        <p className="mb-4 text-slate-500">
           ⏳ Claude durchsucht das Web – das dauert ca. 20–60 Sekunden …
         </p>
       )}
@@ -76,26 +97,34 @@ export default function LearnMode() {
         </div>
       )}
 
-      {company && !loading && (
-        <div>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm text-slate-500">
-              Aktive Firma:{' '}
-              <span className="font-medium text-slate-700">{company.name}</span>
-              {' · '}recherchiert am{' '}
-              {new Date(company.fetchedAt).toLocaleString('de-DE')}
+      {companies.length > 0 && (
+        <>
+          <CompanySelector
+            companies={companies}
+            activeUrl={activeUrl}
+            onChange={handleSelect}
+          />
+
+          {active && (
+            <div>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="text-sm text-slate-500">
+                  recherchiert am{' '}
+                  {new Date(active.fetchedAt).toLocaleString('de-DE')}
+                </div>
+                <button
+                  onClick={handleRemove}
+                  className="text-sm text-slate-500 hover:text-red-600"
+                >
+                  diese Firma löschen
+                </button>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-5">
+                <Markdown>{active.summary}</Markdown>
+              </div>
             </div>
-            <button
-              onClick={handleClear}
-              className="text-sm text-slate-500 hover:text-red-600"
-            >
-              zurücksetzen
-            </button>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <Markdown>{company.summary}</Markdown>
-          </div>
-        </div>
+          )}
+        </>
       )}
     </div>
   )
