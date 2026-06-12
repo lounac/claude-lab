@@ -104,6 +104,7 @@ Liste der genutzten Webseiten als Aufzählung.
 Regeln:
 - Nutze nur Informationen aus den Suchergebnissen. Erfinde nichts.
 - Wenn du etwas nicht findest, schreibe kurz, dass dazu keine verlässlichen Infos gefunden wurden.
+- Gib KEINE Vorrede und keine Erklärung deines Vorgehens aus.
 - Die allererste Zeile MUSS die Überschrift mit dem reinen Firmennamen sein: "# Firmenname".`
 
 export async function runResearch(input: ResearchInput): Promise<ResearchResult> {
@@ -142,7 +143,11 @@ export async function runResearch(input: ResearchInput): Promise<ResearchResult>
     guard++
   }
 
-  const summary = extractText(response.content)
+  const fullText = extractText(response.content)
+  // Falls Claude doch eine Vorrede ausgibt: alles vor der ersten Überschrift entfernen.
+  const headingIndex = fullText.search(/^#\s+/m)
+  const summary =
+    headingIndex >= 0 ? fullText.slice(headingIndex).trim() : fullText
   if (!summary) {
     throw new ApiError(
       502,
