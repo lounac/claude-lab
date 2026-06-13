@@ -72,3 +72,27 @@ export function loadActiveCompany(): CompanyKnowledge | null {
   const activeUrl = localStorage.getItem(ACTIVE_KEY)
   return list.find((c) => c.url === activeUrl) ?? list[0]
 }
+
+// --- Geschätzte API-Gesamtkosten (zur Transparenz) -------------------------
+
+const SPEND_KEY = 'trainer-app:spendUsd'
+
+/** Bisher geschätzte API-Gesamtkosten in USD. */
+export function loadSpend(): number {
+  const raw = localStorage.getItem(SPEND_KEY)
+  const n = raw ? Number(raw) : 0
+  return Number.isFinite(n) ? n : 0
+}
+
+/** Addiert geschätzte Kosten und benachrichtigt Zuhörer (Event "trainer-spend"). */
+export function addSpend(usd: number): void {
+  if (!usd || usd <= 0) return
+  localStorage.setItem(SPEND_KEY, String(loadSpend() + usd))
+  window.dispatchEvent(new Event('trainer-spend'))
+}
+
+/** Setzt den Kostenzähler zurück. */
+export function resetSpend(): void {
+  localStorage.removeItem(SPEND_KEY)
+  window.dispatchEvent(new Event('trainer-spend'))
+}

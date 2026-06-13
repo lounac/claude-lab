@@ -95,23 +95,40 @@ export interface ChatInput {
   system?: string
   messages: Anthropic.MessageParam[]
   maxTokens?: number
+  model?: string
 }
 
-export async function runChat(input: ChatInput): Promise<{ text: string }> {
+// Erlaubte Modelle für /api/chat (verhindert beliebige Modell-Strings vom Client).
+const ALLOWED_CHAT_MODELS = new Set([
+  'claude-sonnet-4-6',
+  'claude-haiku-4-5',
+  'claude-opus-4-8',
+])
+
+export async function runChat(
+  input: ChatInput,
+): Promise<{ text: string; costUsd: number }> {
   const messages = input?.messages
   if (!Array.isArray(messages) || messages.length === 0) {
     throw new ApiError(400, 'Es wurden keine Nachrichten übergeben.')
   }
 
+  const model =
+    input.model && ALLOWED_CHAT_MODELS.has(input.model) ? input.model : MODEL
+
   const client = getClient()
   const response = await client.messages.create({
-    model: MODEL,
+    model,
     max_tokens: input.maxTokens ?? 1500,
     system: input.system,
     messages,
   })
 
-  return { text: extractText(response.content) }
+  // Kostenschätzung nutzt Sonnet-Preise (für Haiku leicht zu hoch = konservativ).
+  return {
+    text: extractText(response.content),
+    costUsd: estimateCostUSD(response.usage),
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -5,7 +5,9 @@ import {
   loadCompanies,
   loadActiveCompany,
   setActiveCompanyUrl,
+  addSpend,
 } from '../lib/storage'
+import { MODELS } from '../lib/models'
 import CompanySelector from '../components/CompanySelector'
 import Spinner from '../components/Spinner'
 
@@ -88,13 +90,18 @@ export default function QuizMode() {
     setAnswers({})
     setQuestions(null)
     try {
-      const res = await postJSON<{ text: string }>('/api/chat', {
-        system: QUIZ_SYSTEM,
-        messages: [
-          { role: 'user', content: `Firmen-Briefing:\n\n${activeSummary}` },
-        ],
-        maxTokens: 1800,
-      })
+      const res = await postJSON<{ text: string; costUsd?: number }>(
+        '/api/chat',
+        {
+          system: QUIZ_SYSTEM,
+          messages: [
+            { role: 'user', content: `Firmen-Briefing:\n\n${activeSummary}` },
+          ],
+          maxTokens: 1800,
+          model: MODELS.quiz,
+        },
+      )
+      addSpend(res.costUsd ?? 0)
       setQuestions(parseQuestions(res.text))
     } catch {
       setError('Das Quiz konnte nicht erstellt werden. Bitte versuche es erneut.')

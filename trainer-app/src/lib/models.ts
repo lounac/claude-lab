@@ -1,9 +1,11 @@
-// Zentrale Stelle für die verwendeten Claude-Modelle.
-// Hier einfach umstellen, falls du ein anderes Modell nutzen möchtest.
+// Zentrale Stelle für die verwendeten Claude-Modelle (Frontend-Seite).
+// Das Backend hat eine erlaubte Liste; hier wählen wir pro Aufgabe.
 
 export const MODELS = {
-  /** Für Chat/Quiz: gutes Verhältnis aus Geschwindigkeit, Qualität und Kosten. */
+  /** Quiz: einfache Aufgabe → günstigeres, schnelles Modell. */
+  quiz: 'claude-haiku-4-5',
+  /** Rollenspiel/Chat: ausgewogenes Modell für natürliche Gespräche. */
   chat: 'claude-sonnet-4-6',
-  /** Für die Firmen-Recherche (Web-Suche). */
+  /** Recherche (im Backend gesetzt). */
   research: 'claude-sonnet-4-6',
 } as const

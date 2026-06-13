@@ -1,13 +1,22 @@
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { modes } from '../modes/registry'
+import { loadSpend, resetSpend } from '../lib/storage'
 
-const linkClass =
-  'px-3 py-2 rounded-lg text-sm font-medium transition-colors'
+const linkClass = 'px-3 py-2 rounded-lg text-sm font-medium transition-colors'
 
 export default function Layout() {
+  const [spend, setSpend] = useState(() => loadSpend())
+
+  useEffect(() => {
+    const handler = () => setSpend(loadSpend())
+    window.addEventListener('trainer-spend', handler)
+    return () => window.removeEventListener('trainer-spend', handler)
+  }, [])
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+      <header className="border-b border-slate-200 bg-white print:hidden">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-2 px-4 py-3">
           <NavLink to="/" className="mr-2 font-semibold text-violet-700">
             🎯 Interview-Trainer
@@ -33,9 +42,24 @@ export default function Layout() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
         <Outlet />
       </main>
+
+      <footer className="border-t border-slate-200 bg-white px-4 py-3 text-center text-xs text-slate-400 print:hidden">
+        Geschätzte API-Kosten gesamt: ~{Math.round(spend * 100)} Cent
+        {spend > 0 && (
+          <>
+            {' · '}
+            <button
+              onClick={resetSpend}
+              className="underline hover:text-slate-600"
+            >
+              zurücksetzen
+            </button>
+          </>
+        )}
+      </footer>
     </div>
   )
 }

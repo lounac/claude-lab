@@ -5,6 +5,7 @@ import {
   loadCompanies,
   loadActiveCompany,
   setActiveCompanyUrl,
+  addSpend,
 } from '../lib/storage'
 import type { ChatMessage } from '../types'
 import CompanySelector from '../components/CompanySelector'
@@ -63,11 +64,15 @@ ${active.summary}`
     setLoading(true)
     setError(null)
     try {
-      const res = await postJSON<{ text: string }>('/api/chat', {
-        system,
-        messages: history,
-        maxTokens: 800,
-      })
+      const res = await postJSON<{ text: string; costUsd?: number }>(
+        '/api/chat',
+        {
+          system,
+          messages: history,
+          maxTokens: 800,
+        },
+      )
+      addSpend(res.costUsd ?? 0)
       setMessages([...history, { role: 'assistant', content: res.text }])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unbekannter Fehler')
