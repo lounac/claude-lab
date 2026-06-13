@@ -45,9 +45,8 @@ const PRICE_PER_SEARCH = 0.01
 
 // Obergrenzen pro Anfrage – wird sie überschritten, wird abgebrochen.
 const RESEARCH_BUDGET_USD = 0.4
-const FOLLOWUP_BUDGET_USD = 0.15
-const MAX_RESEARCH_SEARCHES = 12
-const MAX_FOLLOWUP_SEARCHES = 3
+// Wenige Suchen = der eigentliche Kostenhebel (jede Suche liest mehrere Seiten).
+const MAX_RESEARCH_SEARCHES = 3
 
 // Job-/Bewertungsportale, die bei der Web-Suche ausgeschlossen werden.
 // (Token-intensiv; Stellen sollen ausschließlich von der eigenen Firmenseite kommen.)
@@ -166,45 +165,46 @@ export interface ResearchResult {
 
 const RESEARCH_SYSTEM = `Du bist ein Recherche-Assistent, der Menschen bei der Jobsuche und der Vorbereitung auf Vorstellungsgespräche unterstützt. Du erhältst die Website-URL und die offizielle Domain einer Firma. Recherchiere mit der Web-Suche und erstelle ein faktenbasiertes Briefing auf Deutsch.
 
-Recherche-Regeln:
-- ALLGEMEINE INFOS & NEWS: Nutze mehrere seriöse Quellen (Firmenseite, Nachrichtenseiten, Wikipedia o. Ä.). Nutze höchstens ca. 20 verschiedene Seiten.
+Recherche-Regeln (WICHTIG für die Kosten):
+- Sei sehr effizient: Nutze nur WENIGE, gezielte Web-Suchen (höchstens 3–4) und fasse zusammen, was du findest. Lies nicht unnötig viele Seiten.
+- ALLGEMEINE INFOS & NEWS: gerne aus mehreren seriösen Quellen (Firmenseite, Nachrichtenseiten, Wikipedia o. Ä.).
 - OFFENE STELLEN: ausschließlich von der offiziellen Firmen-Website (der angegebenen Domain). KEINE Stellen von anderen Seiten oder Job-Portalen.
-- QUELLENANGABE: Gib bei jeder Information an, von welcher Seite sie stammt – als Markdown-Link in Klammern, z. B. ([Quelle](https://…)).
+- QUELLENANGABE: Gib bei wichtigen Informationen an, von welcher Seite sie stammen – als Markdown-Link, z. B. ([Quelle](https://…)).
 
 Gib AUSSCHLIESSLICH Markdown in genau dieser Struktur zurück (Abschnitte ohne Inhalt weglassen):
 
 # <Firmenname>
 
 ## Überblick
-Branche, Gründung, Größe, Umsatz, Standorte – mit Quellen-Links.
+Branche, Gründung, Größe, Umsatz, Standorte.
 
 ## Produkte & Dienstleistungen
-Wichtigste Angebote – mit Quellen-Links.
+Wichtigste Angebote.
 
 ## Abteilungen & Bereiche
-Abteilungen/Teams (z. B. Entwicklung, Beratung, Data/AI, Vertrieb) – mit Quellen-Links.
+Abteilungen/Teams (z. B. Entwicklung, Beratung, Data/AI, Vertrieb).
 
 ## Aktuelle Projekte & Technologien
-Projekte, Referenzen, Tech-Stack – mit Quellen-Links.
+Projekte, Referenzen, Tech-Stack.
+
+## Kultur, Philosophie & Strategie
+Unternehmenskultur, Leitbild/Philosophie und strategische Ausrichtung/Ziele.
+
+## Benefits & Arbeitsmodell
+Arbeitsmodell (Remote/Hybrid/Büro), Benefits, Einstiegsmöglichkeiten (Praktikum/Werkstudent/Junior), Bewerbungsprozess.
 
 ## News
-Bis zu 10 aktuelle, interessante Meldungen über die Firma (neueste zuerst). Pro Eintrag Datum, kurze Beschreibung und Quellen-Link, Format:
+Interessante Meldungen über die Firma aus den LETZTEN 6 MONATEN (neueste zuerst, höchstens 10; ältere weglassen). Pro Eintrag Format:
 - **JJJJ-MM:** Kurzbeschreibung ([Quelle](https://…))
 
 ## Offene Stellen & gesuchte Profile
 NUR von der offiziellen Firmen-Website. Fokus auf Softwareentwicklung/IT: welche Rollen, in welchen Bereichen/Projekten, mit welchen Anforderungen? Verlinke die Karriere-Übersichtsseite (NICHT einzelne, bald ungültige Stellen-URLs).
 
-## Für Bewerber:innen relevant
-Arbeitsmodell (Remote/Hybrid/Büro), Benefits, Einstiegsmöglichkeiten (Praktikum/Werkstudent/Junior), Bewerbungsprozess.
-
-## Werte & Kultur
-Leitbild, Werte, Arbeitsweise – mit Quellen-Links.
-
 ## Mögliche Interview-Themen
 3–6 Stichpunkte, die im Gespräch relevant sein könnten.
 
 ## Quellen
-Gesamtliste der genutzten Seiten als Aufzählung mit Links.
+Liste der genutzten Seiten als Aufzählung mit Links.
 
 Regeln:
 - Nutze nur belegbare Informationen. Erfinde nichts – besonders keine Stellenausschreibungen.
@@ -295,15 +295,11 @@ export interface FollowupInput {
   summary?: string
 }
 
-const FOLLOWUP_SYSTEM = `Du beantwortest eine konkrete Frage zu einer Firma – für eine Person, die sich dort bewirbt.
+// Nachfrage OHNE Web-Suche: beantwortet nur anhand des vorhandenen Briefings
+// (kostet dadurch nur ~1–2 Cent statt einer teuren Web-Recherche).
+const FOLLOWUP_SYSTEM = `Du beantwortest eine Frage zu einer Firma – für eine Person, die sich dort bewirbt – AUSSCHLIESSLICH anhand des bereitgestellten Firmen-Briefings. Es wird KEINE neue Web-Recherche durchgeführt (um Kosten zu sparen).
 
-Recherche sparsam: Nutze die Web-Suche nur wenn nötig und mit wenigen Quellen. Job-Portale sind ausgeschlossen. Geht es um offene Stellen, nutze ausschließlich die offizielle Firmen-Website. Oft reicht das unten bereitgestellte Briefing als Grundlage. Gib bei Web-Infos Quellen-Links an.
-
-Antworte knapp, sachlich und faktenbasiert auf Deutsch in Markdown.
-
-Wichtig:
-- Verwende KEINE eigene Hauptüberschrift (die Antwort wird in ein bestehendes Dokument eingefügt).
-- Wenn du etwas nicht sicher findest, sage das ehrlich. Erfinde nichts.`
+Antworte knapp, sachlich auf Deutsch in Markdown, OHNE eigene Hauptüberschrift (die Antwort wird in ein bestehendes Dokument eingefügt). Wenn die Antwort nicht aus dem Briefing hervorgeht, sage offen, dass diese Information im aktuellen Briefing nicht enthalten ist (und dass man die Firma bei Bedarf neu recherchieren kann). Erfinde nichts.`
 
 export async function runFollowup(
   input: FollowupInput,
@@ -314,40 +310,22 @@ export async function runFollowup(
   }
 
   const client = getClient()
-  const tools = [broadSearchTool(MAX_FOLLOWUP_SEARCHES)]
   const context = input.summary
-    ? `\n\nZum Kontext – das bisherige Briefing zur Firma:\n\n${input.summary}`
+    ? `\n\nFirmen-Briefing:\n\n${input.summary}`
     : ''
   const messages: Anthropic.MessageParam[] = [
     {
       role: 'user',
-      content: `Beantworte folgende Frage zur Firma ${input.name ?? ''} (${input.url ?? ''}):\n\n"${question}"${context}`,
+      content: `Frage zur Firma ${input.name ?? ''}:\n\n"${question}"${context}`,
     },
   ]
 
-  let response = await client.messages.create({
+  const response = await client.messages.create({
     model: MODEL,
-    max_tokens: 1200,
+    max_tokens: 800,
     system: FOLLOWUP_SYSTEM,
-    tools,
     messages,
   })
-  let costUsd = estimateCostUSD(response.usage)
-
-  let guard = 0
-  while (response.stop_reason === 'pause_turn' && guard < 2) {
-    if (costUsd >= FOLLOWUP_BUDGET_USD) break
-    messages.push({ role: 'assistant', content: response.content })
-    response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 1200,
-      system: FOLLOWUP_SYSTEM,
-      tools,
-      messages,
-    })
-    costUsd += estimateCostUSD(response.usage)
-    guard++
-  }
 
   const answer = extractText(response.content)
   if (!answer) {
@@ -357,5 +335,5 @@ export async function runFollowup(
     )
   }
 
-  return { answer, costUsd }
+  return { answer, costUsd: estimateCostUSD(response.usage) }
 }

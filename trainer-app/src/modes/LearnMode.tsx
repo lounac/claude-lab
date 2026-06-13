@@ -193,9 +193,9 @@ export default function LearnMode() {
           </button>
         </form>
         <p className="mb-6 text-xs text-slate-400">
-          Recherche nutzt mehrere Quellen (offene Stellen nur von der
-          Firmen-Website). Kostet meist ~10–40 Cent; harter Stopp bei ca. 40
-          Cent.
+          Recherche nutzt nur wenige Web-Suchen (offene Stellen nur von der
+          Firmen-Website). Die genauen Kosten siehst du direkt nach der
+          Recherche.
         </p>
 
         {loading && (
@@ -287,7 +287,7 @@ export default function LearnMode() {
 
                   {asking && (
                     <p className="mt-2">
-                      <Spinner label="Claude recherchiert die Antwort …" />
+                      <Spinner label="Claude beantwortet die Frage …" />
                     </p>
                   )}
                   {askError && (
@@ -299,8 +299,9 @@ export default function LearnMode() {
                     <p className="mt-2 text-xs text-slate-500">{askInfo}</p>
                   )}
                   <p className="mt-2 text-xs text-slate-400">
-                    Die Antwort wird unten im Briefing unter „Angefragte
-                    Informationen" ergänzt und gespeichert.
+                    Antwort basiert auf dem vorhandenen Briefing (keine neue
+                    Web-Suche, daher sehr günstig) und wird unten unter
+                    „Angefragte Informationen" ergänzt.
                   </p>
                 </form>
 
