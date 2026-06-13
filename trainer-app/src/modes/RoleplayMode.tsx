@@ -8,6 +8,7 @@ import {
 } from '../lib/storage'
 import type { ChatMessage } from '../types'
 import CompanySelector from '../components/CompanySelector'
+import Spinner from '../components/Spinner'
 
 export default function RoleplayMode() {
   const [companies] = useState(() => loadCompanies())
@@ -149,7 +150,11 @@ ${active.summary}`
                 </div>
               </div>
             ))}
-            {loading && <div className="text-slate-500">⏳ …</div>}
+            {loading && (
+              <div className="flex justify-start">
+                <Spinner label="Claude antwortet …" />
+              </div>
+            )}
           </div>
 
           {error && (

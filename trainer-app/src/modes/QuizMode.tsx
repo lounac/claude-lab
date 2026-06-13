@@ -7,6 +7,7 @@ import {
   setActiveCompanyUrl,
 } from '../lib/storage'
 import CompanySelector from '../components/CompanySelector'
+import Spinner from '../components/Spinner'
 
 interface QuizQuestion {
   question: string
@@ -137,7 +138,9 @@ export default function QuizMode() {
         </button>
       )}
       {loading && !questions && (
-        <p className="mt-3 text-slate-500">⏳ Claude erstellt deine Fragen …</p>
+        <p className="mt-3">
+          <Spinner label="Claude erstellt deine Fragen …" />
+        </p>
       )}
       {error && (
         <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">

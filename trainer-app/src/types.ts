@@ -10,6 +10,8 @@ export interface CompanyKnowledge {
   fetchedAt: string
   /** Optionale Quellen, die bei der Recherche genutzt wurden. */
   sources?: { title: string; url: string }[]
+  /** Geschätzte Kosten der Recherche in USD. */
+  costUsd?: number
 }
 
 /** Eine Nachricht im Chat (Rollenspiel-Modus). */
