@@ -218,9 +218,9 @@ export default function LearnMode() {
       <div className="print:hidden">
         <h2 className="mb-2 text-2xl font-bold">📚 Firmenwissen lernen</h2>
         <p className="mb-4 text-slate-600">
-          Gib die Website einer Firma ein – die App recherchiert die wichtigsten
-          Infos für dein Interview (mehrere Quellen mit Quellenangabe; offene
-          Stellen nur von der Firmen-Website). Die letzten 10 Firmen werden
+          Gib die Website einer Firma ein – die App recherchiert tief auf der
+          firmeneigenen Website (mit Quellenangabe), damit du das Unternehmen
+          fürs Gespräch wirklich verstehst. Die letzten 10 Firmen werden
           gespeichert.
         </p>
 
@@ -243,9 +243,8 @@ export default function LearnMode() {
           </button>
         </form>
         <p className="mb-6 text-xs text-slate-400">
-          Recherche nutzt nur wenige Web-Suchen (offene Stellen nur von der
-          Firmen-Website). Die genauen Kosten siehst du direkt nach der
-          Recherche.
+          Recherche nur auf der Firmen-Website (mehrere Unterseiten). Die genauen
+          Kosten siehst du direkt nach der Recherche.
         </p>
 
         {loading && (

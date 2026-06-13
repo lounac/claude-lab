@@ -1,7 +1,6 @@
 import type { ComponentType } from 'react'
 import LearnMode from './LearnMode'
 import QuizMode from './QuizMode'
-import RoleplayMode from './RoleplayMode'
 
 // Zentrale Registry der Modi.
 // Neuer Modus = neue Datei in src/modes/ + ein Eintrag hier. Sonst nichts:
@@ -33,13 +32,5 @@ export const modes: ModeDef[] = [
     icon: '❓',
     description: 'Wissensfragen zur Firma beantworten und auswerten.',
     component: QuizMode,
-  },
-  {
-    id: 'roleplay',
-    path: '/roleplay',
-    title: 'Rollenspiel',
-    icon: '🎤',
-    description: 'Übungsinterview mit Claude als Interviewer.',
-    component: RoleplayMode,
   },
 ]
