@@ -18,6 +18,55 @@ function toCents(usd?: number): number | null {
   return typeof usd === 'number' ? Math.round(usd * 100) : null
 }
 
+// Fügt Text ans Ende des passenden "##"-Abschnitts ein (oder hängt einen neuen an).
+function appendToSection(
+  summary: string,
+  section: string,
+  text: string,
+): string {
+  const lines = summary.split('\n')
+  const norm = (s: string) => s.trim().toLowerCase()
+  const target = norm(section)
+  const isHeading = (line: string) => /^##\s+/.test(line)
+  const headingTitle = (line: string) => line.replace(/^##\s+/, '').trim()
+
+  // passenden Abschnitt finden (erst exakt, dann "enthält")
+  let headingIdx = lines.findIndex(
+    (l) => isHeading(l) && norm(headingTitle(l)) === target,
+  )
+  if (headingIdx === -1) {
+    headingIdx = lines.findIndex((l) => {
+      if (!isHeading(l)) return false
+      const t = norm(headingTitle(l))
+      return t.includes(target) || target.includes(t)
+    })
+  }
+
+  if (headingIdx === -1) {
+    return `${summary.trimEnd()}\n\n## ${section}\n\n${text}\n`
+  }
+
+  // Ende des Abschnitts = nächste "##"-Überschrift
+  let endIdx = lines.length
+  for (let i = headingIdx + 1; i < lines.length; i++) {
+    if (isHeading(lines[i])) {
+      endIdx = i
+      break
+    }
+  }
+
+  const before = lines.slice(0, endIdx)
+  const after = lines.slice(endIdx)
+  while (before.length && before[before.length - 1].trim() === '') before.pop()
+
+  return (
+    [...before, '', text, '', ...after]
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trimEnd() + '\n'
+  )
+}
+
 // Vorschläge für gezielte Nachfragen (füllen das Eingabefeld).
 const QUICK_QUESTIONS = [
   'Welche offenen Stellen gibt es für Softwareentwicklung?',
@@ -118,21 +167,22 @@ export default function LearnMode() {
     setAskError(null)
     setAskInfo(null)
     try {
-      const res = await postJSON<{ answer: string; costUsd?: number }>(
-        '/api/ask',
-        {
-          url: active.url,
-          name: active.name,
-          summary: active.summary,
-          question: trimmed,
-        },
-      )
+      const res = await postJSON<{
+        section: string
+        answer: string
+        costUsd?: number
+      }>('/api/ask', {
+        url: active.url,
+        name: active.name,
+        summary: active.summary,
+        question: trimmed,
+      })
       addSpend(res.costUsd ?? 0)
-      const block = `**Frage:** ${trimmed}\n\n${res.answer.trim()}`
-      const base = active.summary.trimEnd()
-      const newSummary = base.includes('## Angefragte Informationen')
-        ? `${base}\n\n${block}`
-        : `${base}\n\n## Angefragte Informationen\n\n${block}`
+      const newSummary = appendToSection(
+        active.summary,
+        res.section,
+        res.answer.trim(),
+      )
       const updated: CompanyKnowledge = { ...active, summary: newSummary }
       saveCompany(updated)
       setCompanies(loadCompanies())
@@ -300,8 +350,8 @@ export default function LearnMode() {
                   )}
                   <p className="mt-2 text-xs text-slate-400">
                     Antwort basiert auf dem vorhandenen Briefing (keine neue
-                    Web-Suche, daher sehr günstig) und wird unten unter
-                    „Angefragte Informationen" ergänzt.
+                    Web-Suche, daher sehr günstig) und wird in den passenden
+                    Abschnitt des Briefings eingefügt.
                   </p>
                 </form>
 

@@ -296,14 +296,19 @@ export interface FollowupInput {
 }
 
 // Nachfrage OHNE Web-Suche: beantwortet nur anhand des vorhandenen Briefings
-// (kostet dadurch nur ~1–2 Cent statt einer teuren Web-Recherche).
+// (kostet dadurch nur ~1–2 Cent) und ordnet die Antwort dem passenden Abschnitt zu.
 const FOLLOWUP_SYSTEM = `Du beantwortest eine Frage zu einer Firma – für eine Person, die sich dort bewirbt – AUSSCHLIESSLICH anhand des bereitgestellten Firmen-Briefings. Es wird KEINE neue Web-Recherche durchgeführt (um Kosten zu sparen).
 
-Antworte knapp, sachlich auf Deutsch in Markdown, OHNE eigene Hauptüberschrift (die Antwort wird in ein bestehendes Dokument eingefügt). Wenn die Antwort nicht aus dem Briefing hervorgeht, sage offen, dass diese Information im aktuellen Briefing nicht enthalten ist (und dass man die Firma bei Bedarf neu recherchieren kann). Erfinde nichts.`
+Ordne die Antwort dem thematisch am besten passenden Abschnitt des Briefings zu (nutze exakt eine der vorhandenen "##"-Überschriften, z. B. "Benefits & Arbeitsmodell", "Offene Stellen & gesuchte Profile", "Kultur, Philosophie & Strategie", "Überblick"). Passt keiner, wähle einen kurzen, treffenden neuen Abschnittstitel.
+
+Antworte AUSSCHLIESSLICH mit JSON (KEIN Markdown-Codeblock, kein Text drumherum) in genau diesem Format:
+{"section": "<Abschnittstitel ohne ##>", "answer": "<knappe Antwort in Markdown, ohne eigene Überschrift>"}
+
+Wenn die Antwort nicht aus dem Briefing hervorgeht, setze "answer" auf einen kurzen Hinweis, dass diese Information im aktuellen Briefing nicht enthalten ist. Erfinde nichts.`
 
 export async function runFollowup(
   input: FollowupInput,
-): Promise<{ answer: string; costUsd: number }> {
+): Promise<{ section: string; answer: string; costUsd: number }> {
   const question = input?.question?.trim()
   if (!question) {
     throw new ApiError(400, 'Bitte gib eine Frage ein.')
@@ -327,13 +332,35 @@ export async function runFollowup(
     messages,
   })
 
-  const answer = extractText(response.content)
-  if (!answer) {
+  const raw = extractText(response.content)
+  if (!raw) {
     throw new ApiError(
       502,
       'Es konnte keine Antwort ermittelt werden. Bitte formuliere die Frage anders.',
     )
   }
 
-  return { answer, costUsd: estimateCostUSD(response.usage) }
+  // JSON {section, answer} parsen (mit Fallback auf reinen Text).
+  let section = 'Weitere Informationen'
+  let answer = raw
+  try {
+    let cleaned = raw.trim()
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned
+        .replace(/^```[a-z]*\s*/i, '')
+        .replace(/```$/, '')
+        .trim()
+    }
+    const parsed = JSON.parse(cleaned)
+    if (parsed && typeof parsed.answer === 'string') {
+      answer = parsed.answer
+      if (typeof parsed.section === 'string' && parsed.section.trim()) {
+        section = parsed.section.trim()
+      }
+    }
+  } catch {
+    // Fallback: kein gültiges JSON → ganzer Text als Antwort
+  }
+
+  return { section, answer, costUsd: estimateCostUSD(response.usage) }
 }
