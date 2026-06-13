@@ -44,10 +44,28 @@ const PRICE_CACHE_WRITE = 3.75 / 1_000_000
 const PRICE_PER_SEARCH = 0.01
 
 // Obergrenzen pro Anfrage – wird sie überschritten, wird abgebrochen.
-const RESEARCH_BUDGET_USD = 0.3
+const RESEARCH_BUDGET_USD = 0.4
 const FOLLOWUP_BUDGET_USD = 0.15
-const MAX_RESEARCH_SEARCHES = 5
+const MAX_RESEARCH_SEARCHES = 12
 const MAX_FOLLOWUP_SEARCHES = 3
+
+// Job-/Bewertungsportale, die bei der Web-Suche ausgeschlossen werden.
+// (Token-intensiv; Stellen sollen ausschließlich von der eigenen Firmenseite kommen.)
+const BLOCKED_DOMAINS = [
+  'indeed.com',
+  'de.indeed.com',
+  'stepstone.de',
+  'linkedin.com',
+  'glassdoor.com',
+  'glassdoor.de',
+  'xing.com',
+  'kununu.com',
+  'monster.de',
+  'get-in-it.de',
+  'absolventa.de',
+  'stellenanzeigen.de',
+  'jobware.de',
+]
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function estimateCostUSD(usage: any): number {
@@ -72,19 +90,15 @@ function domainFromUrl(u: string): string | undefined {
   }
 }
 
-// Web-Such-Tool, begrenzt auf die eigene Firmen-Domain und auf maxUses Suchen.
-function ownSiteSearchTool(
-  domain: string | undefined,
-  maxUses: number,
-): Anthropic.Messages.ToolUnion {
-  return domain
-    ? {
-        type: 'web_search_20260209',
-        name: 'web_search',
-        max_uses: maxUses,
-        allowed_domains: [domain],
-      }
-    : { type: 'web_search_20260209', name: 'web_search', max_uses: maxUses }
+// Web-Such-Tool: durchsucht mehrere Seiten (für allgemeine Infos & News),
+// schließt aber Job-/Bewertungsportale aus und begrenzt die Anzahl der Suchen.
+function broadSearchTool(maxUses: number): Anthropic.Messages.ToolUnion {
+  return {
+    type: 'web_search_20260209',
+    name: 'web_search',
+    max_uses: maxUses,
+    blocked_domains: BLOCKED_DOMAINS,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -150,45 +164,51 @@ export interface ResearchResult {
   truncated: boolean
 }
 
-const RESEARCH_SYSTEM = `Du bist ein Recherche-Assistent, der Menschen bei der Jobsuche und der Vorbereitung auf Vorstellungsgespräche unterstützt. Du erhältst die Website-URL einer Firma.
+const RESEARCH_SYSTEM = `Du bist ein Recherche-Assistent, der Menschen bei der Jobsuche und der Vorbereitung auf Vorstellungsgespräche unterstützt. Du erhältst die Website-URL und die offizielle Domain einer Firma. Recherchiere mit der Web-Suche und erstelle ein faktenbasiertes Briefing auf Deutsch.
 
-WICHTIG – Kosten sparen: Recherchiere AUSSCHLIESSLICH auf der offiziellen Website der Firma (inkl. deren eigener Karriere-/Job-Seite, z. B. /karriere, /jobs, /stellenangebote). Nutze KEINE externen Job-Portale (Indeed, StepStone, LinkedIn, Glassdoor o. ä.) und keine sonstigen fremden Seiten. Mache nur wenige, gezielte Suchen.
+Recherche-Regeln:
+- ALLGEMEINE INFOS & NEWS: Nutze mehrere seriöse Quellen (Firmenseite, Nachrichtenseiten, Wikipedia o. Ä.). Nutze höchstens ca. 20 verschiedene Seiten.
+- OFFENE STELLEN: ausschließlich von der offiziellen Firmen-Website (der angegebenen Domain). KEINE Stellen von anderen Seiten oder Job-Portalen.
+- QUELLENANGABE: Gib bei jeder Information an, von welcher Seite sie stammt – als Markdown-Link in Klammern, z. B. ([Quelle](https://…)).
 
-Erstelle ein faktenbasiertes Briefing auf Deutsch. Gib AUSSCHLIESSLICH Markdown in genau dieser Struktur zurück (Abschnitte ohne Inhalt weglassen):
+Gib AUSSCHLIESSLICH Markdown in genau dieser Struktur zurück (Abschnitte ohne Inhalt weglassen):
 
 # <Firmenname>
 
 ## Überblick
-Was macht die Firma? Branche, Gründung, Größe, Umsatz, Standorte.
+Branche, Gründung, Größe, Umsatz, Standorte – mit Quellen-Links.
 
 ## Produkte & Dienstleistungen
-Wichtigste Angebote und Leistungen.
+Wichtigste Angebote – mit Quellen-Links.
 
 ## Abteilungen & Bereiche
-Welche Abteilungen, Fachbereiche oder Teams gibt es (z. B. Entwicklung, Beratung, Design, Data/AI, Vertrieb)?
+Abteilungen/Teams (z. B. Entwicklung, Beratung, Data/AI, Vertrieb) – mit Quellen-Links.
 
 ## Aktuelle Projekte & Technologien
-Aktuelle (Software-)Projekte und Referenzen sowie eingesetzte Technologien/Tools (Tech-Stack).
+Projekte, Referenzen, Tech-Stack – mit Quellen-Links.
+
+## News
+Bis zu 10 aktuelle, interessante Meldungen über die Firma (neueste zuerst). Pro Eintrag Datum, kurze Beschreibung und Quellen-Link, Format:
+- **JJJJ-MM:** Kurzbeschreibung ([Quelle](https://…))
 
 ## Offene Stellen & gesuchte Profile
-Welche Stellen sind laut der firmeneigenen Karriere-Seite ausgeschrieben? Fokus auf Softwareentwicklung/IT: welche Rollen, in welchen Bereichen/Projekten, mit welchen Anforderungen?
+NUR von der offiziellen Firmen-Website. Fokus auf Softwareentwicklung/IT: welche Rollen, in welchen Bereichen/Projekten, mit welchen Anforderungen? Verlinke die Karriere-Übersichtsseite (NICHT einzelne, bald ungültige Stellen-URLs).
 
 ## Für Bewerber:innen relevant
-Arbeitsmodell (Remote/Hybrid/Büro), Benefits, Einstiegsmöglichkeiten (Praktikum/Werkstudent/Junior), Bewerbungsprozess, Standorte.
+Arbeitsmodell (Remote/Hybrid/Büro), Benefits, Einstiegsmöglichkeiten (Praktikum/Werkstudent/Junior), Bewerbungsprozess.
 
 ## Werte & Kultur
-Leitbild, Werte, Arbeitsweise.
+Leitbild, Werte, Arbeitsweise – mit Quellen-Links.
 
 ## Mögliche Interview-Themen
 3–6 Stichpunkte, die im Gespräch relevant sein könnten.
 
 ## Quellen
-Wenige Quellen-Links von der Firmenseite.
+Gesamtliste der genutzten Seiten als Aufzählung mit Links.
 
 Regeln:
-- Nutze nur Informationen von der offiziellen Firmenwebsite. Erfinde nichts – besonders keine erfundenen Stellenausschreibungen.
-- Verlinke bei offenen Stellen die allgemeine Karriere-/Job-Übersichtsseite (z. B. firma.de/karriere) – NICHT einzelne Stellen-URLs, da diese oft schnell ungültig werden (tote Links).
-- Wenn du keine offenen Stellen findest, sage das offen und verweise auf die Karriere-Seite.
+- Nutze nur belegbare Informationen. Erfinde nichts – besonders keine Stellenausschreibungen.
+- Stellen ausschließlich von der offiziellen Firmen-Domain. Wenn du dort keine findest, sage das offen und verweise auf die Karriere-Seite.
 - Gib KEINE Vorrede aus. Die allererste Zeile MUSS die Überschrift mit dem reinen Firmennamen sein: "# Firmenname".`
 
 export async function runResearch(input: ResearchInput): Promise<ResearchResult> {
@@ -201,17 +221,17 @@ export async function runResearch(input: ResearchInput): Promise<ResearchResult>
   const domain = domainFromUrl(url)
 
   const client = getClient()
-  const tools = [ownSiteSearchTool(domain, MAX_RESEARCH_SEARCHES)]
+  const tools = [broadSearchTool(MAX_RESEARCH_SEARCHES)]
   const messages: Anthropic.MessageParam[] = [
     {
       role: 'user',
-      content: `Recherchiere diese Firma ausschließlich auf ihrer eigenen Website und erstelle das Briefing. Firmen-Website: ${url}`,
+      content: `Erstelle das Briefing für diese Firma.\nFirmen-Website: ${url}\nOffizielle Domain (offene Stellen AUSSCHLIESSLICH von dieser Domain): ${domain ?? url}`,
     },
   ]
 
   let response = await client.messages.create({
     model: MODEL,
-    max_tokens: 3000,
+    max_tokens: 4000,
     system: RESEARCH_SYSTEM,
     tools,
     messages,
@@ -230,7 +250,7 @@ export async function runResearch(input: ResearchInput): Promise<ResearchResult>
     messages.push({ role: 'assistant', content: response.content })
     response = await client.messages.create({
       model: MODEL,
-      max_tokens: 3000,
+      max_tokens: 4000,
       system: RESEARCH_SYSTEM,
       tools,
       messages,
@@ -277,7 +297,7 @@ export interface FollowupInput {
 
 const FOLLOWUP_SYSTEM = `Du beantwortest eine konkrete Frage zu einer Firma – für eine Person, die sich dort bewirbt.
 
-WICHTIG – Kosten sparen: Wenn du die Web-Suche nutzt, suche AUSSCHLIESSLICH auf der offiziellen Website der Firma. Nutze KEINE externen Job-Portale. Mache nur wenige, gezielte Suchen. Oft reicht das unten bereitgestellte Briefing als Grundlage.
+Recherche sparsam: Nutze die Web-Suche nur wenn nötig und mit wenigen Quellen. Job-Portale sind ausgeschlossen. Geht es um offene Stellen, nutze ausschließlich die offizielle Firmen-Website. Oft reicht das unten bereitgestellte Briefing als Grundlage. Gib bei Web-Infos Quellen-Links an.
 
 Antworte knapp, sachlich und faktenbasiert auf Deutsch in Markdown.
 
@@ -294,8 +314,7 @@ export async function runFollowup(
   }
 
   const client = getClient()
-  const domain = input.url ? domainFromUrl(input.url) : undefined
-  const tools = [ownSiteSearchTool(domain, MAX_FOLLOWUP_SEARCHES)]
+  const tools = [broadSearchTool(MAX_FOLLOWUP_SEARCHES)]
   const context = input.summary
     ? `\n\nZum Kontext – das bisherige Briefing zur Firma:\n\n${input.summary}`
     : ''
