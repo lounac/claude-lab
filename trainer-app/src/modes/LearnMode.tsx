@@ -243,8 +243,8 @@ export default function LearnMode() {
           </button>
         </form>
         <p className="mb-6 text-xs text-slate-400">
-          Recherche nur auf der Firmen-Website (mehrere Unterseiten). Die genauen
-          Kosten siehst du direkt nach der Recherche.
+          Recherche liest mehrere Unterseiten der Firmen-Website – kostenbegrenzt
+          (meist ~5–15 Cent). Die genauen Kosten siehst du direkt danach.
         </p>
 
         {loading && (

@@ -1,6 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { runFollowup, ApiError } from './_lib/claude.js'
 
+// Vercel: Funktion spätestens nach 30 s beenden.
+export const maxDuration = 30
+
 // Vercel Serverless Function: POST /api/ask
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
