@@ -113,9 +113,9 @@ export interface ResearchResult {
 }
 
 const FETCH_TIMEOUT_MS = 8000 // pro Seite
-const MAX_PAGES = 6 // Startseite + bis zu 5 Unterseiten
-const MAX_CHARS_PER_PAGE = 6000
-const MAX_TOTAL_CHARS = 30000
+const MAX_PAGES = 14 // Startseite + bis zu 13 Unterseiten
+const MAX_CHARS_PER_PAGE = 7000
+const MAX_TOTAL_CHARS = 80000 // begrenzt die Kosten (~10–15 Cent), egal wie viele Seiten
 
 function domainFromUrl(u: string): string | undefined {
   try {
@@ -136,10 +136,13 @@ async function fetchHtml(url: string): Promise<string | null> {
     })
     clearTimeout(timer)
     if (!res.ok) return null
-    const contentType = res.headers.get('content-type') ?? ''
-    if (!contentType.includes('text/html') && !contentType.includes('text/plain')) {
-      return null
-    }
+    const contentType = (res.headers.get('content-type') ?? '').toLowerCase()
+    const accepted =
+      contentType === '' ||
+      contentType.includes('html') ||
+      contentType.includes('xml') ||
+      contentType.includes('text')
+    if (!accepted) return null
     return await res.text()
   } catch {
     return null
@@ -162,14 +165,34 @@ function htmlToText(html: string): string {
     .trim()
 }
 
-// Relevante interne Links (gleiche Domain) aus der Startseite auswählen.
-function pickSubpages(html: string, base: string, domain: string): string[] {
-  const keywords = [
-    'ueber', 'über', 'about', 'unternehmen', 'company', 'karriere', 'career',
-    'jobs', 'stelle', 'news', 'presse', 'press', 'blog', 'leistung', 'produkt',
-    'service', 'kultur', 'culture', 'mission', 'werte', 'value', 'strateg',
-  ]
-  const scored = new Map<string, number>()
+const PAGE_KEYWORDS = [
+  'ueber', 'über', 'about', 'unternehmen', 'company', 'karriere', 'career',
+  'jobs', 'stelle', 'news', 'presse', 'press', 'blog', 'leistung', 'produkt',
+  'service', 'kultur', 'culture', 'mission', 'werte', 'value', 'strateg',
+  'team', 'standort', 'geschichte', 'history',
+]
+
+const NON_CONTENT_EXT =
+  /\.(pdf|jpe?g|png|gif|svg|webp|zip|mp4|mp3|css|js|ico|xml|json|woff2?|ttf)$/i
+
+function isContentUrl(u: URL): boolean {
+  return !NON_CONTENT_EXT.test(u.pathname)
+}
+
+function scoreUrl(u: string): number {
+  const lower = u.toLowerCase()
+  let score = 0
+  for (const k of PAGE_KEYWORDS) if (lower.includes(k)) score += 1
+  return score
+}
+
+// Interne Links (gleiche Domain) aus HTML extrahieren.
+function extractInternalLinks(
+  html: string,
+  base: string,
+  domain: string,
+): string[] {
+  const out = new Set<string>()
   const re = /href\s*=\s*["']([^"']+)["']/gi
   let m: RegExpExecArray | null
   while ((m = re.exec(html)) !== null) {
@@ -184,15 +207,45 @@ function pickSubpages(html: string, base: string, domain: string): string[] {
       continue
     }
     if (abs.hostname.replace(/^www\./i, '') !== domain) continue
+    if (!isContentUrl(abs)) continue
     abs.hash = ''
-    const u = abs.toString()
-    const lower = u.toLowerCase()
-    let score = 0
-    for (const k of keywords) if (lower.includes(k)) score += 1
-    if (score === 0) continue
-    scored.set(u, Math.max(scored.get(u) ?? 0, score))
+    abs.search = ''
+    out.add(abs.toString())
   }
-  return [...scored.entries()].sort((a, b) => b[1] - a[1]).map(([u]) => u)
+  return [...out]
+}
+
+// URLs aus der sitemap.xml sammeln (mit einfacher Sitemap-Index-Auflösung).
+async function collectSitemapUrls(
+  origin: string,
+  domain: string,
+): Promise<string[]> {
+  const out = new Set<string>()
+  async function read(sitemapUrl: string, depth: number): Promise<void> {
+    if (depth > 1 || out.size > 300) return
+    const xml = await fetchHtml(sitemapUrl)
+    if (!xml) return
+    const locs = [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)].map((x) => x[1])
+    for (const loc of locs) {
+      if (/\.xml$/i.test(loc)) {
+        if (depth < 1) await read(loc, depth + 1)
+        continue
+      }
+      let abs: URL
+      try {
+        abs = new URL(loc)
+      } catch {
+        continue
+      }
+      if (abs.hostname.replace(/^www\./i, '') !== domain) continue
+      if (!isContentUrl(abs)) continue
+      abs.hash = ''
+      abs.search = ''
+      out.add(abs.toString())
+    }
+  }
+  await read(`${origin}/sitemap.xml`, 0)
+  return [...out]
 }
 
 const RESEARCH_SYSTEM = `Du bist ein Recherche-Assistent, der Menschen hilft, eine Firma für ihre Bewerbung und ihr Vorstellungsgespräch wirklich zu verstehen. Du erhältst den Textinhalt mehrerer Seiten der FIRMENEIGENEN Website. Erstelle daraus ein fundiertes, faktenbasiertes Briefing auf Deutsch.
@@ -258,8 +311,25 @@ export async function runResearch(input: ResearchInput): Promise<ResearchResult>
     )
   }
 
-  // 2) relevante Unterseiten auswählen und parallel laden
-  const subUrls = pickSubpages(homeHtml, url, domain).slice(0, MAX_PAGES - 1)
+  // 2) Kandidaten-Seiten aus Startseiten-Links UND sitemap.xml sammeln,
+  //    nach Stichwort-Relevanz sortieren und die besten parallel laden.
+  const origin = new URL(url).origin
+  const homeNorm = (() => {
+    const x = new URL(url)
+    x.hash = ''
+    x.search = ''
+    return x.toString()
+  })()
+  const sitemapUrls = await collectSitemapUrls(origin, domain)
+  const candidates = new Set<string>([
+    ...extractInternalLinks(homeHtml, url, domain),
+    ...sitemapUrls,
+  ])
+  candidates.delete(homeNorm)
+  const subUrls = [...candidates]
+    .sort((a, b) => scoreUrl(b) - scoreUrl(a))
+    .slice(0, MAX_PAGES - 1)
+
   const pages: { url: string; text: string }[] = [
     { url, text: htmlToText(homeHtml).slice(0, MAX_CHARS_PER_PAGE) },
   ]
@@ -281,7 +351,7 @@ export async function runResearch(input: ResearchInput): Promise<ResearchResult>
   const client = getClient()
   const response = await client.messages.create({
     model: MODEL,
-    max_tokens: 3000,
+    max_tokens: 3500,
     system: RESEARCH_SYSTEM,
     messages: [
       {
