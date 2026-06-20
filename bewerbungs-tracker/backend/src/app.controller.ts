@@ -9,4 +9,10 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  // Neuer Endpunkt: GET /health → ruft den Service auf, gibt JSON zurück.
+  @Get('health')
+  getHealth() {
+    return this.appService.getHealth();
+  }
 }
