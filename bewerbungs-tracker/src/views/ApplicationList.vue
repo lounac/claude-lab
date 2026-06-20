@@ -3,14 +3,12 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useApplicationsStore } from '../stores/applications'
-import { useAuthStore } from '../stores/auth'
 import ApplicationCard from '../components/applications/ApplicationCard.vue'
 
 const store = useApplicationsStore()
 // storeToRefs hält items/loading/error reaktiv (sie aktualisieren sich automatisch).
 const { items, loading, error } = storeToRefs(store)
 
-const auth = useAuthStore()
 const router = useRouter()
 
 // Beim Öffnen der Seite die Bewerbungen laden.
@@ -19,29 +17,13 @@ onMounted(() => {
 })
 
 function neueBewerbung() {
-  router.push({ name: 'new' }) // Route kommt in Schritt 15
-}
-
-// Vorläufiger Abmelden-Knopf – wandert in Schritt 17 in die App-Leiste.
-async function abmelden() {
-  await auth.signOut()
-  router.push('/auth')
+  router.push({ name: 'new' })
 }
 </script>
 
 <template>
   <v-container class="py-6">
-    <!-- Kopfzeile -->
-    <div class="d-flex align-center mb-4">
-      <h2 class="text-h5">Meine Bewerbungen</h2>
-      <v-spacer />
-      <v-btn
-        icon="mdi-logout"
-        variant="text"
-        title="Abmelden"
-        @click="abmelden"
-      />
-    </div>
+    <h2 class="text-h5 mb-4">Meine Bewerbungen</h2>
 
     <v-btn color="primary" prepend-icon="mdi-plus" class="mb-4" @click="neueBewerbung">
       Neue Bewerbung

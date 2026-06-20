@@ -7,7 +7,12 @@ defineProps<{ application: Application }>()
 </script>
 
 <template>
-  <v-card variant="outlined">
+  <!-- :to macht die ganze Karte zu einem Link auf die Detailansicht. -->
+  <v-card
+    variant="outlined"
+    hover
+    :to="{ name: 'detail', params: { id: application.id } }"
+  >
     <v-card-item>
       <v-card-title>{{ application.company_name }}</v-card-title>
       <v-card-subtitle>{{ application.position || '—' }}</v-card-subtitle>

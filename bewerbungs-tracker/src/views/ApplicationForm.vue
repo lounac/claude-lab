@@ -76,6 +76,18 @@ function bereinigt(): ApplicationInput {
   }
 }
 
+// Macht aus einem unbekannten Fehler (auch Supabase-Objekten) einen lesbaren Text.
+function fehlerText(e: unknown): string {
+  if (e instanceof Error) return e.message
+  if (e && typeof e === 'object') {
+    const o = e as Record<string, unknown>
+    const teile = [o.message, o.details, o.hint].filter(Boolean)
+    if (teile.length) return teile.join(' — ')
+    return JSON.stringify(e)
+  }
+  return String(e)
+}
+
 async function speichern() {
   if (!form.company_name) {
     fehler.value = 'Bitte gib mindestens den Firmennamen ein.'
@@ -91,7 +103,7 @@ async function speichern() {
     }
     router.push('/') // zurück zur Liste
   } catch (e) {
-    fehler.value = e instanceof Error ? e.message : String(e)
+    fehler.value = fehlerText(e)
   } finally {
     laeuft.value = false
   }
