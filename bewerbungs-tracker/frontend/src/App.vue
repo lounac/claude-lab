@@ -1,12 +1,31 @@
 <script setup lang="ts">
 // Das Grundgerüst der App: durchgehende obere Leiste + die jeweils aktive Seite.
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useTheme } from 'vuetify'
 import { useAuthStore } from './stores/auth'
 import { useOnline } from './composables/useOnline'
 
 const auth = useAuthStore()
 const router = useRouter()
 const { online } = useOnline()
+
+// Hell-/Dunkel-Modus. Vuetify bringt die Themes 'light' und 'dark' schon mit.
+const theme = useTheme()
+
+// Gespeicherte Wahl beim Start übernehmen (bleibt über Neuladen erhalten).
+const gespeichert = localStorage.getItem('bt_theme')
+if (gespeichert === 'dark' || gespeichert === 'light') {
+  theme.global.name.value = gespeichert
+}
+
+const istDunkel = computed(() => theme.global.current.value.dark)
+
+function themeWechseln() {
+  const neu = istDunkel.value ? 'light' : 'dark'
+  theme.global.name.value = neu
+  localStorage.setItem('bt_theme', neu)
+}
 
 async function abmelden() {
   await auth.signOut()
@@ -22,6 +41,13 @@ async function abmelden() {
           Bewerbungs-Tracker
         </router-link>
       </v-app-bar-title>
+
+      <!-- Hell/Dunkel umschalten (immer sichtbar) -->
+      <v-btn
+        :icon="istDunkel ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+        :title="istDunkel ? 'Heller Modus' : 'Dunkler Modus'"
+        @click="themeWechseln"
+      />
 
       <!-- Nur sichtbar, wenn jemand eingeloggt ist -->
       <template v-if="auth.user">
