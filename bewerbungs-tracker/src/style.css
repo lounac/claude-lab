@@ -1,0 +1,7 @@
+/* Minimale Grund-Styles. Das restliche Layout übernimmt Vuetify (über v-app). */
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+}
