@@ -6,7 +6,7 @@ import {
   APPLICATION_STATUSES,
   APPLICATION_PRIORITIES,
 } from '../types/application'
-import type { ApplicationInput } from '../types/application'
+import type { ApplicationInput, ApplicationStatus } from '../types/application'
 
 const route = useRoute()
 const router = useRouter()
@@ -33,6 +33,17 @@ const form = reactive<ApplicationInput>({
   notes: '',
   next_deadline: null,
 })
+
+// Kommt man von der gefilterten Liste (z. B. Filter "interessant"), wird der
+// Status als Vorauswahl übernommen – nur beim Neu-Anlegen.
+const statusAusFilter = route.query.status
+if (
+  !istBearbeiten.value &&
+  typeof statusAusFilter === 'string' &&
+  (APPLICATION_STATUSES as readonly string[]).includes(statusAusFilter)
+) {
+  form.status = statusAusFilter as ApplicationStatus
+}
 
 const fehler = ref('')
 const laeuft = ref(false)

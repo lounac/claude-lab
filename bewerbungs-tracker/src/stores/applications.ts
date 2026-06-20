@@ -1,46 +1,81 @@
 // Zentraler Speicher für die Bewerbungen (Pinia-Store).
-// Redet mit der Supabase-Tabelle "applications" und hält die Liste im Speicher bereit.
+// Redet mit Supabase und hält zusätzlich eine lokale Kopie für den Offline-Fall.
 
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from './auth'
+import { cacheLesen, cacheSchreiben } from '../lib/applicationsCache'
 import type { Application, ApplicationInput } from '../types/application'
 
-export const useApplicationsStore = defineStore('applications', () => {
-  const items = ref<Application[]>([]) // die geladenen Bewerbungen
-  const loading = ref(false) // true, während geladen wird
-  const error = ref('') // letzte Fehlermeldung (für Anzeige)
+// Macht aus technischen Fehlern verständliches Deutsch.
+function freundlicherFehler(message: string): string {
+  const m = message.toLowerCase()
+  if (m.includes('failed to fetch') || m.includes('network')) {
+    return 'Keine Internetverbindung – bitte später erneut versuchen.'
+  }
+  return message
+}
 
-  // Alle Bewerbungen laden. Dank der Schutzregel (RLS) sind das automatisch nur deine.
+export const useApplicationsStore = defineStore('applications', () => {
+  // Start: direkt die lokale Kopie laden → Liste ist sofort da (auch offline).
+  const items = ref<Application[]>(cacheLesen())
+  const loading = ref(false)
+  const error = ref('')
+  const ausCache = ref(false) // true = wir zeigen gerade die Offline-Kopie
+
   async function fetchAll() {
     loading.value = true
     error.value = ''
-    const { data, error: err } = await supabase
-      .from('applications')
-      .select('*')
-      .order('created_at', { ascending: false }) // neueste zuerst
-    if (err) error.value = err.message
-    else items.value = data as Application[]
-    loading.value = false
+    ausCache.value = false
+    try {
+      const { data, error: err } = await supabase
+        .from('applications')
+        .select('*')
+        .order('created_at', { ascending: false }) // neueste zuerst
+      if (err) throw err
+      items.value = data as Application[]
+      cacheSchreiben(items.value) // lokale Kopie aktualisieren
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      if (!navigator.onLine) {
+        // Offline: zuletzt gespeicherte Kopie anzeigen.
+        const kopie = cacheLesen()
+        items.value = kopie
+        ausCache.value = kopie.length > 0
+        error.value = kopie.length
+          ? ''
+          : 'Keine Internetverbindung – es sind noch keine Daten gespeichert.'
+      } else {
+        error.value = freundlicherFehler(message)
+      }
+    } finally {
+      loading.value = false
+    }
   }
 
-  // Eine einzelne Bewerbung holen (für Detail- und Bearbeiten-Seite).
   async function getById(id: string): Promise<Application | null> {
-    const { data, error: err } = await supabase
-      .from('applications')
-      .select('*')
-      .eq('id', id)
-      .single()
-    if (err) {
-      error.value = err.message
+    try {
+      const { data, error: err } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('id', id)
+        .single()
+      if (err) throw err
+      return data as Application
+    } catch (e) {
+      // Offline/Fehler: in der bereits geladenen Liste (= Kopie) nachsehen.
+      const ausListe = items.value.find((a) => a.id === id)
+      if (ausListe) return ausListe
+      error.value = freundlicherFehler(e instanceof Error ? e.message : String(e))
       return null
     }
-    return data as Application
   }
 
-  // Neue Bewerbung anlegen. user_id wird automatisch ergänzt (verlangt die Schutzregel).
   async function create(input: ApplicationInput): Promise<Application> {
+    if (!navigator.onLine) {
+      throw new Error('Keine Internetverbindung – Speichern ist gerade nicht möglich.')
+    }
     const auth = useAuthStore()
     const { data, error: err } = await supabase
       .from('applications')
@@ -48,12 +83,15 @@ export const useApplicationsStore = defineStore('applications', () => {
       .select()
       .single()
     if (err) throw err
-    items.value.unshift(data as Application) // sofort vorne in die Liste
+    items.value.unshift(data as Application)
+    cacheSchreiben(items.value)
     return data as Application
   }
 
-  // Bestehende Bewerbung ändern.
   async function update(id: string, input: ApplicationInput): Promise<Application> {
+    if (!navigator.onLine) {
+      throw new Error('Keine Internetverbindung – Speichern ist gerade nicht möglich.')
+    }
     const { data, error: err } = await supabase
       .from('applications')
       .update(input)
@@ -62,16 +100,20 @@ export const useApplicationsStore = defineStore('applications', () => {
       .single()
     if (err) throw err
     const index = items.value.findIndex((a) => a.id === id)
-    if (index !== -1) items.value[index] = data as Application // Liste aktualisieren
+    if (index !== -1) items.value[index] = data as Application
+    cacheSchreiben(items.value)
     return data as Application
   }
 
-  // Bewerbung löschen.
   async function remove(id: string): Promise<void> {
+    if (!navigator.onLine) {
+      throw new Error('Keine Internetverbindung – Löschen ist gerade nicht möglich.')
+    }
     const { error: err } = await supabase.from('applications').delete().eq('id', id)
     if (err) throw err
-    items.value = items.value.filter((a) => a.id !== id) // aus der Liste entfernen
+    items.value = items.value.filter((a) => a.id !== id)
+    cacheSchreiben(items.value)
   }
 
-  return { items, loading, error, fetchAll, getById, create, update, remove }
+  return { items, loading, error, ausCache, fetchAll, getById, create, update, remove }
 })

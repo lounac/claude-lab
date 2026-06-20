@@ -2,9 +2,11 @@
 // Das Grundgerüst der App: durchgehende obere Leiste + die jeweils aktive Seite.
 import { useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import { useOnline } from './composables/useOnline'
 
 const auth = useAuthStore()
 const router = useRouter()
+const { online } = useOnline()
 
 async function abmelden() {
   await auth.signOut()
@@ -29,6 +31,18 @@ async function abmelden() {
     </v-app-bar>
 
     <v-main>
+      <!-- Offline-Hinweis: erscheint automatisch ohne Internetverbindung -->
+      <v-alert
+        v-if="!online"
+        type="warning"
+        density="compact"
+        rounded="0"
+        icon="mdi-wifi-off"
+      >
+        Du bist offline – du siehst den zuletzt geladenen Stand. Speichern ist
+        gerade nicht möglich.
+      </v-alert>
+
       <router-view />
     </v-main>
   </v-app>
