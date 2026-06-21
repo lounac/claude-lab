@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useApplicationsStore } from '../stores/applications'
 import type { Application } from '../types/application'
 import StatusChip from '../components/applications/StatusChip.vue'
+import StaerkenAnalyse from '../components/applications/StaerkenAnalyse.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,6 +16,10 @@ const laden = ref(true)
 
 const loeschDialog = ref(false)
 const loescht = ref(false)
+
+// KI-Analyse nur zeigen, wo ein Backend erreichbar ist:
+// lokal (Entwicklung) oder wenn VITE_API_URL gesetzt ist (gehostetes Backend).
+const kiVerfuegbar = import.meta.env.DEV || !!import.meta.env.VITE_API_URL
 
 onMounted(async () => {
   bewerbung.value = await store.getById(id)
@@ -110,6 +115,22 @@ async function loeschenBestaetigt() {
         <div v-if="bewerbung.notes" class="mt-4">
           <div class="text-subtitle-2 mb-1">Notizen</div>
           <p style="white-space: pre-wrap">{{ bewerbung.notes }}</p>
+        </div>
+
+        <!-- Stellenbeschreibung: direkt unter den Notizen, nur der Titel, ausklappbar -->
+        <v-expansion-panels v-if="bewerbung.job_description" class="mt-4">
+          <v-expansion-panel title="Stellenbeschreibung">
+            <v-expansion-panel-text>
+              <p style="white-space: pre-wrap" class="text-body-2">
+                {{ bewerbung.job_description }}
+              </p>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+        <!-- KI-Stärken-Analyse: nur, wo ein Backend erreichbar ist -->
+        <div v-if="kiVerfuegbar" class="mt-4">
+          <StaerkenAnalyse :application="bewerbung" />
         </div>
       </v-card-text>
 

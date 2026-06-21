@@ -1,0 +1,26 @@
+# Kompilierte Ausgabe
+/dist
+/node_modules
+/build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Umgebungsvariablen (Geheimnisse – NICHT committen!)
+.env
+.env.*
+!.env.example
+
+# Tests
+/coverage
+
+# Editor / OS
+.idea
+.DS_Store
+*.iml
+
+# VS Code (außer geteilte Einstellungen)
+.vscode/*
+!.vscode/extensions.json

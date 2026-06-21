@@ -115,5 +115,41 @@ export const useApplicationsStore = defineStore('applications', () => {
     cacheSchreiben(items.value)
   }
 
-  return { items, loading, error, ausCache, fetchAll, getById, create, update, remove }
+  // Speichert die letzte KI-Analyse + Lücken + Zeitstempel an einer Bewerbung.
+  async function analyseSpeichern(
+    id: string,
+    analyse: string,
+    gaps: string,
+  ): Promise<string> {
+    const analyzed_at = new Date().toISOString()
+    const { error: err } = await supabase
+      .from('applications')
+      .update({ last_analysis: analyse, analyzed_at, gaps })
+      .eq('id', id)
+    if (err) throw err
+    const index = items.value.findIndex((a) => a.id === id)
+    if (index !== -1) {
+      items.value[index] = {
+        ...items.value[index],
+        last_analysis: analyse,
+        analyzed_at,
+        gaps,
+      }
+      cacheSchreiben(items.value)
+    }
+    return analyzed_at
+  }
+
+  return {
+    items,
+    loading,
+    error,
+    ausCache,
+    fetchAll,
+    getById,
+    create,
+    update,
+    remove,
+    analyseSpeichern,
+  }
 })
