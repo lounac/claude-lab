@@ -17,6 +17,10 @@ const laden = ref(true)
 const loeschDialog = ref(false)
 const loescht = ref(false)
 
+// KI-Analyse nur zeigen, wo ein Backend erreichbar ist:
+// lokal (Entwicklung) oder wenn VITE_API_URL gesetzt ist (gehostetes Backend).
+const kiVerfuegbar = import.meta.env.DEV || !!import.meta.env.VITE_API_URL
+
 onMounted(async () => {
   bewerbung.value = await store.getById(id)
   laden.value = false
@@ -124,8 +128,8 @@ async function loeschenBestaetigt() {
           </v-expansion-panel>
         </v-expansion-panels>
 
-        <!-- KI-Stärken-Analyse (NestJS-Backend + Claude) -->
-        <div class="mt-4">
+        <!-- KI-Stärken-Analyse: nur, wo ein Backend erreichbar ist -->
+        <div v-if="kiVerfuegbar" class="mt-4">
           <StaerkenAnalyse :application="bewerbung" />
         </div>
       </v-card-text>
