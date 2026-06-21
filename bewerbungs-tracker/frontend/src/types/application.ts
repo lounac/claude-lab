@@ -32,8 +32,12 @@ export interface Application {
   contact_person: string | null // Ansprechpartner:in / Kontakt (optional)
   application_date: string | null // Bewerbungsdatum als Text 'JJJJ-MM-TT' (optional)
   job_url: string | null // Link zur Stellenanzeige (optional)
+  job_description: string | null // Stellenbeschreibung/Anforderungen (für die KI-Analyse)
   notes: string | null // freie Notizen (optional)
   next_deadline: string | null // nächste Frist als Text 'JJJJ-MM-TT' (optional)
+  last_analysis: string | null // zuletzt gespeicherte KI-Stärken-Analyse
+  analyzed_at: string | null // wann zuletzt analysiert (ISO-Zeit)
+  gaps: string | null // "Was mir noch fehlt für die Stelle" (aus der Analyse)
   created_at: string // automatisch: wann angelegt
   updated_at: string // automatisch: wann zuletzt geändert
 }
@@ -50,6 +54,7 @@ export type ApplicationInput = Pick<
   | 'contact_person'
   | 'application_date'
   | 'job_url'
+  | 'job_description'
   | 'notes'
   | 'next_deadline'
 >
