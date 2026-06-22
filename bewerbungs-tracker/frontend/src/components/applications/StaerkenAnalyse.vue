@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import type { Application } from '../../types/application'
 import { useCv } from '../../composables/useCv'
 import { useApplicationsStore } from '../../stores/applications'
+import { supabase } from '../../lib/supabase'
 
 const props = defineProps<{ application: Application }>()
 
@@ -13,6 +14,16 @@ const { cv } = useCv() // nur lesen – verwaltet wird der CV unter „Mein CV"
 
 const hatStellentext = computed(() => !!props.application.job_description)
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+
+// Baut die Header für einen Backend-Aufruf inkl. deinem aktuellen Login-Token.
+// Das Backend (Türsteher) lässt nur Anfragen mit gültigem Token durch.
+async function authHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) headers.Authorization = `Bearer ${token}`
+  return headers
+}
 
 const dialog = ref(false)
 const laeuft = ref(false)
@@ -70,7 +81,7 @@ async function analysieren() {
   try {
     const res = await fetch(`${apiUrl}/analyse/staerken`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({
         cvText: cv.value.text,
         firma: props.application.company_name,
@@ -109,7 +120,7 @@ async function verfeinern() {
   try {
     const res = await fetch(`${apiUrl}/analyse/verfeinern`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({
         cvText: cv.value.text,
         firma: props.application.company_name,

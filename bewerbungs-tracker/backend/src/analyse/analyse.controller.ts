@@ -1,8 +1,12 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AnalyseService } from './analyse.service';
+import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 import type { StaerkenEingabe, VerfeinernEingabe } from './analyse.service';
 
+// Der Türsteher gilt für ALLE Endpunkte in diesem Controller:
+// ohne gültigen Login-Token kommt niemand zur Analyse durch.
 @Controller('analyse')
+@UseGuards(SupabaseAuthGuard)
 export class AnalyseController {
   constructor(private readonly analyseService: AnalyseService) {}
 
