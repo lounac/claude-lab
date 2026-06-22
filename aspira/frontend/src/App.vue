@@ -52,6 +52,7 @@ async function abmelden() {
       <!-- Nur sichtbar, wenn jemand eingeloggt ist -->
       <template v-if="auth.user">
         <v-btn icon="mdi-file-account-outline" title="Mein CV" to="/cv" />
+        <v-btn icon="mdi-information-outline" title="Über Aspira" to="/ueber" />
         <span class="text-body-2 mr-2 d-none d-sm-inline">{{ auth.user.email }}</span>
         <v-btn icon="mdi-logout" title="Abmelden" @click="abmelden" />
       </template>

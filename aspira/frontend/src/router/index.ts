@@ -7,6 +7,7 @@ import ApplicationList from '../views/ApplicationList.vue'
 import ApplicationForm from '../views/ApplicationForm.vue'
 import ApplicationDetail from '../views/ApplicationDetail.vue'
 import CvView from '../views/CvView.vue'
+import UeberAspiraView from '../views/UeberAspiraView.vue'
 
 const router = createRouter({
   // createWebHistory = saubere Adressen ohne # (z. B. /auth statt /#/auth).
@@ -15,6 +16,7 @@ const router = createRouter({
     { path: '/auth', name: 'auth', component: AuthView },
     { path: '/', name: 'list', component: ApplicationList },
     { path: '/cv', name: 'cv', component: CvView },
+    { path: '/ueber', name: 'ueber', component: UeberAspiraView },
     { path: '/neu', name: 'new', component: ApplicationForm },
     { path: '/:id/bearbeiten', name: 'edit', component: ApplicationForm },
     { path: '/:id', name: 'detail', component: ApplicationDetail },
