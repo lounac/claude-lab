@@ -9,8 +9,8 @@ const props = defineProps<{ status: ApplicationStatus }>()
 const farben: Record<ApplicationStatus, string> = {
   interessant: 'blue-grey',
   'in vorbereitung': 'orange',
-  beworben: 'blue',
-  'antwort erhalten': 'cyan',
+  beworben: 'teal',
+  'antwort erhalten': 'indigo',
   interview: 'deep-purple',
   zusage: 'green',
   absage: 'red',
