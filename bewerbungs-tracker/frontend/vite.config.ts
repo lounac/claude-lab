@@ -13,9 +13,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate', // neue Version wird automatisch übernommen
       manifest: {
-        name: 'Bewerbungs-Tracker',
-        short_name: 'Bewerbungen',
-        description: 'Verwalte deine Job-Bewerbungen an einem Ort.',
+        name: 'Aspira',
+        short_name: 'Aspira',
+        description: 'Aspira – dein Begleiter für Bewerbung und Karriere.',
         lang: 'de',
         theme_color: '#1867C0',
         background_color: '#ffffff',

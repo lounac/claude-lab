@@ -10,7 +10,7 @@ const tab = ref('login')
 <template>
   <v-container class="py-8">
     <v-card class="mx-auto pa-4" max-width="440">
-      <v-card-title class="text-center text-h6">Bewerbungs-Tracker</v-card-title>
+      <v-card-title class="text-center text-h6">Aspira</v-card-title>
 
       <!-- Umschalt-Reiter zwischen Anmelden und Registrieren -->
       <v-tabs v-model="tab" grow class="mb-4">

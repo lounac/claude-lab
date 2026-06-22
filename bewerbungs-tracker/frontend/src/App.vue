@@ -38,7 +38,7 @@ async function abmelden() {
     <v-app-bar color="primary" density="comfortable">
       <v-app-bar-title>
         <router-link to="/" style="color: inherit; text-decoration: none">
-          Bewerbungs-Tracker
+          Aspira
         </router-link>
       </v-app-bar-title>
 
