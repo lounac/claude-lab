@@ -14,9 +14,16 @@ import { useAuthStore } from './stores/auth'
 // Router (Seiten-Navigation)
 import router from './router'
 
+// Markenfarbe „Aspira-Orange" – färbt App-Leiste, Buttons usw. (primary).
+const aspiraOrange = '#F39200'
+
 const vuetify = createVuetify({
   theme: {
     defaultTheme: 'light',
+    themes: {
+      light: { colors: { primary: aspiraOrange } },
+      dark: { colors: { primary: aspiraOrange } },
+    },
   },
 })
 

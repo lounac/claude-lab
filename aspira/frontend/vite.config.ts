@@ -17,7 +17,7 @@ export default defineConfig({
         short_name: 'Aspira',
         description: 'Aspira – dein Begleiter für Bewerbung und Karriere.',
         lang: 'de',
-        theme_color: '#1867C0',
+        theme_color: '#F39200',
         background_color: '#ffffff',
         display: 'standalone', // eigenes Fenster ohne Browser-Adressleiste
         start_url: '/',
