@@ -1,17 +1,31 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useCv } from '../composables/useCv'
 import { pdfZuText } from '../lib/pdfText'
 
-const { cv, speichern, loeschen } = useCv()
+const { cv, laden, speichern, loeschen } = useCv()
 
 // Lokale Bearbeitungsfelder (mit dem gespeicherten CV vorbelegt).
 const name = ref(cv.value?.name ?? '')
 const text = ref(cv.value?.text ?? '')
 
-const liest = ref(false)
+const ladet = ref(false) // CV wird gerade aus Supabase geholt
+const speichert = ref(false) // wird gerade gespeichert/gelöscht
+const liest = ref(false) // PDF wird gerade ausgelesen
 const fehler = ref('')
 const meldung = ref('')
+
+// Beim Öffnen: aktuellen CV aus Supabase holen und die Felder damit füllen.
+onMounted(async () => {
+  ladet.value = true
+  try {
+    await laden()
+    name.value = cv.value?.name ?? ''
+    text.value = cv.value?.text ?? ''
+  } finally {
+    ladet.value = false
+  }
+})
 
 async function dateiGewaehlt(event: Event) {
   const input = event.target as HTMLInputElement
@@ -36,21 +50,38 @@ async function dateiGewaehlt(event: Event) {
   }
 }
 
-function speichernKlick() {
+async function speichernKlick() {
   if (!text.value.trim()) {
     fehler.value = 'Bitte zuerst einen CV hochladen oder Text einfügen.'
     return
   }
-  speichern({ name: name.value || 'Lebenslauf', text: text.value })
+  speichert.value = true
   fehler.value = ''
-  meldung.value = 'Lebenslauf gespeichert.'
+  meldung.value = ''
+  try {
+    await speichern({ name: name.value || 'Lebenslauf', text: text.value })
+    meldung.value = 'Lebenslauf gespeichert.'
+  } catch (e) {
+    fehler.value = e instanceof Error ? e.message : 'Speichern fehlgeschlagen.'
+  } finally {
+    speichert.value = false
+  }
 }
 
-function loeschenKlick() {
-  loeschen()
-  name.value = ''
-  text.value = ''
-  meldung.value = 'Lebenslauf gelöscht.'
+async function loeschenKlick() {
+  speichert.value = true
+  fehler.value = ''
+  meldung.value = ''
+  try {
+    await loeschen()
+    name.value = ''
+    text.value = ''
+    meldung.value = 'Lebenslauf gelöscht.'
+  } catch (e) {
+    fehler.value = e instanceof Error ? e.message : 'Löschen fehlgeschlagen.'
+  } finally {
+    speichert.value = false
+  }
 }
 </script>
 
@@ -58,9 +89,14 @@ function loeschenKlick() {
   <v-container class="py-6" style="max-width: 720px">
     <h2 class="text-h5 mb-2">Mein Lebenslauf</h2>
     <p class="text-medium-emphasis mb-4">
-      Hinterlege hier einmal deinen CV. Er wird lokal in deinem Browser gespeichert und
-      für die Stärken-Analyse verwendet.
+      Hinterlege hier einmal deinen CV. Er wird sicher in deinem Konto gespeichert und ist
+      so auf allen deinen Geräten verfügbar. Verwendet wird er für die Stärken-Analyse.
     </p>
+
+    <div v-if="ladet" class="d-flex align-center mb-4" style="gap: 8px">
+      <v-progress-circular indeterminate size="20" color="primary" />
+      <span>Lebenslauf wird geladen…</span>
+    </div>
 
     <v-card class="pa-4">
       <p class="mb-2">CV als PDF hochladen (der Text wird automatisch ausgelesen):</p>
@@ -87,7 +123,13 @@ function loeschenKlick() {
       </v-alert>
 
       <div class="d-flex" style="gap: 8px">
-        <v-btn color="primary" prepend-icon="mdi-content-save" @click="speichernKlick">
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-content-save"
+          :loading="speichert"
+          :disabled="speichert || liest"
+          @click="speichernKlick"
+        >
           Speichern
         </v-btn>
         <v-spacer />
@@ -96,6 +138,7 @@ function loeschenKlick() {
           color="error"
           variant="text"
           prepend-icon="mdi-delete"
+          :disabled="speichert"
           @click="loeschenKlick"
         >
           CV löschen

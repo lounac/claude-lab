@@ -6,6 +6,7 @@ import { defineStore } from 'pinia'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { cacheLeeren } from '../lib/applicationsCache'
+import { cvCacheLeeren } from '../composables/useCv'
 
 export const useAuthStore = defineStore('auth', () => {
   // Die aktuell eingeloggte Person – oder null, wenn niemand eingeloggt ist.
@@ -47,6 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (error) throw error
     user.value = null
     cacheLeeren() // lokale Bewerbungs-Kopie entfernen
+    cvCacheLeeren() // lokale CV-Kopie entfernen
   }
 
   return { user, loading, init, signUp, signIn, signOut }

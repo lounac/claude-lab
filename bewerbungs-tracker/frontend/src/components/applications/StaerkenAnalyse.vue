@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Application } from '../../types/application'
 import { useCv } from '../../composables/useCv'
@@ -10,7 +10,13 @@ const props = defineProps<{ application: Application }>()
 
 const router = useRouter()
 const store = useApplicationsStore()
-const { cv } = useCv() // nur lesen – verwaltet wird der CV unter „Mein CV"
+const { cv, laden } = useCv() // nur lesen – verwaltet wird der CV unter „Mein CV"
+
+// Beim Öffnen den CV aus Supabase holen (wichtig auf einem neuen Gerät,
+// falls vorher nicht extra die „Mein CV"-Seite besucht wurde).
+onMounted(() => {
+  laden()
+})
 
 const hatStellentext = computed(() => !!props.application.job_description)
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
