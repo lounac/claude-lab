@@ -79,7 +79,7 @@ async function loeschenBestaetigt() {
             v-if="bewerbung.application_date"
             prepend-icon="mdi-calendar"
             :title="bewerbung.application_date"
-            subtitle="Bewerbungsdatum"
+            subtitle="Beworben am"
           />
           <v-list-item
             v-if="bewerbung.next_deadline"
@@ -150,13 +150,13 @@ async function loeschenBestaetigt() {
       </v-card-actions>
     </v-card>
 
-    <v-alert v-else type="warning">Bewerbung nicht gefunden.</v-alert>
+    <v-alert v-else type="warning">Stelle nicht gefunden.</v-alert>
 
     <!-- Sicherheitsabfrage vor dem Löschen -->
     <v-dialog v-model="loeschDialog" max-width="400">
       <v-card>
         <v-card-title>Wirklich löschen?</v-card-title>
-        <v-card-text>Diese Bewerbung wird dauerhaft entfernt.</v-card-text>
+        <v-card-text>Diese Stelle wird dauerhaft entfernt.</v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="loeschDialog = false">Abbrechen</v-btn>

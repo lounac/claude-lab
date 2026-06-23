@@ -131,7 +131,7 @@ function abbrechen() {
 <template>
   <v-container class="py-6" style="max-width: 640px">
     <h2 class="text-h5 mb-4">
-      {{ istBearbeiten ? 'Bewerbung bearbeiten' : 'Neue Bewerbung' }}
+      {{ istBearbeiten ? 'Stelle bearbeiten' : 'Neue Stelle' }}
     </h2>
 
     <div v-if="laden" class="text-center py-8">
@@ -156,7 +156,7 @@ function abbrechen() {
 
       <v-text-field
         v-model="form.application_date"
-        label="Bewerbungsdatum"
+        label="Beworben am"
         type="date"
       />
       <v-text-field

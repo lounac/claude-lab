@@ -4,8 +4,8 @@
 const funktionen = [
   {
     icon: 'mdi-briefcase-search-outline',
-    titel: 'Bewerbungen im Blick',
-    text: 'Alle Bewerbungen mit Status-Pipeline, Prioritäten und Wunschfirmen an einem Ort.',
+    titel: 'Stellen im Blick',
+    text: 'Alle Stellen mit Status-Pipeline, Prioritäten und Wunschfirmen an einem Ort.',
   },
   {
     icon: 'mdi-lightbulb-on-outline',

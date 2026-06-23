@@ -216,7 +216,7 @@ async function verfeinern() {
 
         <!-- Hinweis, wenn keine Stellenbeschreibung hinterlegt ist -->
         <v-alert v-if="!hatStellentext" type="info" density="compact" class="mb-3">
-          Diese Bewerbung hat noch keine <strong>Stellenbeschreibung</strong>.
+          Für diese Stelle ist noch keine <strong>Stellenbeschreibung</strong> hinterlegt.
           Trag sie über „Bearbeiten" ein – nur dann kann Claude deinen CV dagegen vergleichen.
         </v-alert>
 

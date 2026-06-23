@@ -60,10 +60,10 @@ function neueBewerbung() {
 
 <template>
   <v-container class="py-6">
-    <h2 class="text-h5 mb-4">Meine Bewerbungen</h2>
+    <h2 class="text-h5 mb-4">Meine Stellen</h2>
 
     <v-btn color="primary" prepend-icon="mdi-plus" class="mb-4" @click="neueBewerbung">
-      Neue Bewerbung
+      Stelle hinzufügen
     </v-btn>
 
     <!-- Filter: Auswahlmenü (platzsparend auch auf dem Handy) -->
@@ -89,8 +89,8 @@ function neueBewerbung() {
     <!-- Noch gar keine Bewerbungen -->
     <v-card v-else-if="items.length === 0" variant="tonal" class="pa-6 text-center">
       <v-icon size="48" class="mb-2">mdi-clipboard-text-outline</v-icon>
-      <p class="text-h6 mb-1">Noch keine Bewerbungen</p>
-      <p class="text-medium-emphasis">Leg mit „Neue Bewerbung" deine erste an.</p>
+      <p class="text-h6 mb-1">Noch keine Stellen</p>
+      <p class="text-medium-emphasis">Leg mit „Stelle hinzufügen" deine erste an.</p>
     </v-card>
 
     <!-- Es gibt Bewerbungen, aber keine im gewählten Filter -->
@@ -100,7 +100,7 @@ function neueBewerbung() {
       class="pa-6 text-center"
     >
       <p class="text-medium-emphasis">
-        Keine Bewerbungen mit Status „{{ filter }}".
+        Keine Stellen mit Status „{{ filter }}".
       </p>
     </v-card>
 
