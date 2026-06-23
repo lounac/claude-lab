@@ -46,11 +46,13 @@ async function abmelden() {
       <v-spacer />
 
       <!-- App-Name, mittig -->
-      <v-app-bar-title class="flex-grow-0 text-center">
-        <router-link to="/" style="color: inherit; text-decoration: none">
-          Aspira
-        </router-link>
-      </v-app-bar-title>
+      <router-link
+        to="/"
+        class="flex-shrink-0 mx-2 text-decoration-none"
+        style="color: inherit; font-size: 1.2rem; font-weight: 500"
+      >
+        Aspira
+      </router-link>
 
       <v-spacer />
 
