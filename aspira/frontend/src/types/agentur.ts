@@ -19,8 +19,8 @@ export interface TerminInput {
   notiz: string | null
 }
 
-// Welche Checkliste: der ALG-Fahrplan oder die Unterlagen.
-export type AufgabenTyp = 'fahrplan' | 'unterlagen'
+// Welche Checkliste: ALG-Fahrplan, Unterlagen oder Angebote der Agentur.
+export type AufgabenTyp = 'fahrplan' | 'unterlagen' | 'angebote'
 
 // Gespeicherter Zustand eines Checklisten-Punkts (aus Supabase).
 export interface AufgabeZustand {
