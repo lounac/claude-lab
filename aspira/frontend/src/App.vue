@@ -65,10 +65,38 @@ async function abmelden() {
 
       <!-- Weitere Funktionen, nur eingeloggt -->
       <template v-if="auth.user">
-        <v-btn icon="mdi-file-account-outline" title="Mein CV" to="/cv" />
-        <v-btn icon="mdi-information-outline" title="Über Aspira" to="/ueber" />
-        <span class="text-body-2 mr-2 d-none d-sm-inline">{{ auth.user.email }}</span>
-        <v-btn icon="mdi-logout" title="Abmelden" @click="abmelden" />
+        <!-- Ab Tablet/Desktop: einzelne Icons -->
+        <v-btn
+          icon="mdi-file-account-outline"
+          title="Mein CV"
+          to="/cv"
+          class="d-none d-sm-inline-flex"
+        />
+        <v-btn
+          icon="mdi-information-outline"
+          title="Über Aspira"
+          to="/ueber"
+          class="d-none d-sm-inline-flex"
+        />
+        <span class="text-body-2 mr-2 d-none d-md-inline">{{ auth.user.email }}</span>
+        <v-btn
+          icon="mdi-logout"
+          title="Abmelden"
+          class="d-none d-sm-inline-flex"
+          @click="abmelden"
+        />
+
+        <!-- Auf dem Handy: Überlauf-Menü – spart Platz für den Namen -->
+        <v-menu>
+          <template #activator="{ props }">
+            <v-btn icon="mdi-dots-vertical" title="Mehr" class="d-sm-none" v-bind="props" />
+          </template>
+          <v-list density="comfortable">
+            <v-list-item to="/cv" prepend-icon="mdi-file-account-outline" title="Mein CV" />
+            <v-list-item to="/ueber" prepend-icon="mdi-information-outline" title="Über Aspira" />
+            <v-list-item prepend-icon="mdi-logout" title="Abmelden" @click="abmelden" />
+          </v-list>
+        </v-menu>
       </template>
     </v-app-bar>
 
