@@ -36,11 +36,23 @@ async function abmelden() {
 <template>
   <v-app>
     <v-app-bar color="primary" density="comfortable">
-      <v-app-bar-title>
+      <!-- Haupt-Bereiche: Stellen | Agentur (nur eingeloggt) -->
+      <template v-if="auth.user">
+        <v-btn icon="mdi-clipboard-text-outline" title="Meine Stellen" to="/" exact />
+        <v-divider vertical class="mx-1 my-3" />
+        <v-btn icon="mdi-bank-outline" title="Arbeitsagentur" to="/agentur" />
+      </template>
+
+      <v-spacer />
+
+      <!-- App-Name, mittig -->
+      <v-app-bar-title class="flex-grow-0 text-center">
         <router-link to="/" style="color: inherit; text-decoration: none">
           Aspira
         </router-link>
       </v-app-bar-title>
+
+      <v-spacer />
 
       <!-- Hell/Dunkel umschalten (immer sichtbar) -->
       <v-btn
@@ -49,7 +61,7 @@ async function abmelden() {
         @click="themeWechseln"
       />
 
-      <!-- Nur sichtbar, wenn jemand eingeloggt ist -->
+      <!-- Weitere Funktionen, nur eingeloggt -->
       <template v-if="auth.user">
         <v-btn icon="mdi-file-account-outline" title="Mein CV" to="/cv" />
         <v-btn icon="mdi-information-outline" title="Über Aspira" to="/ueber" />
@@ -75,3 +87,10 @@ async function abmelden() {
     </v-main>
   </v-app>
 </template>
+
+<style scoped>
+/* Aktiven Haupt-Bereich in der App-Leiste hervorheben. */
+.v-app-bar .v-btn--active {
+  background-color: rgba(0, 0, 0, 0.16);
+}
+</style>
