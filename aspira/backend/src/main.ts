@@ -1,9 +1,14 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Prüft eingehende Bodies gegen die DTOs (class-validator).
+  // whitelist: unbekannte Felder werden entfernt; transform: zu DTO-Instanzen.
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   // CORS: legt fest, WELCHE Webseiten das Backend ansprechen dürfen.
   // - Lokal: die Vue-Dev-Adresse (5173) und die Vite-Vorschau (4173).

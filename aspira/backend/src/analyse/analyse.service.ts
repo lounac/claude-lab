@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -40,34 +40,43 @@ export class AnalyseService {
 
   // Gemeinsamer Claude-Aufruf: Auftrag rein → Analyse-Text + Kosten raus.
   private async aufruf(auftrag: string) {
-    const antwort = await this.anthropic.messages.create({
-      model: MODELL,
-      max_tokens: MAX_TOKENS,
-      messages: [{ role: 'user', content: auftrag }],
-    });
+    try {
+      const antwort = await this.anthropic.messages.create({
+        model: MODELL,
+        max_tokens: MAX_TOKENS,
+        messages: [{ role: 'user', content: auftrag }],
+      });
 
-    const text = antwort.content
-      .map((block) => (block.type === 'text' ? block.text : ''))
-      .join('');
+      const text = antwort.content
+        .map((block) => (block.type === 'text' ? block.text : ''))
+        .join('');
 
-    const usd =
-      antwort.usage.input_tokens * PREIS_INPUT +
-      antwort.usage.output_tokens * PREIS_OUTPUT;
+      const usd =
+        antwort.usage.input_tokens * PREIS_INPUT +
+        antwort.usage.output_tokens * PREIS_OUTPUT;
 
-    // Text in Analyse + kompakte Lücken-Liste trennen (Marker steht im Prompt).
-    const teile = text.split('===LÜCKEN===');
-    const analyse = teile[0].trim();
-    const luecken = (teile[1] ?? '').trim();
+      // Text in Analyse + kompakte Lücken-Liste trennen (Marker steht im Prompt).
+      const teile = text.split('===LÜCKEN===');
+      const analyse = teile[0].trim();
+      const luecken = (teile[1] ?? '').trim();
 
-    return {
-      analyse,
-      luecken,
-      kosten: {
-        eingabeTokens: antwort.usage.input_tokens,
-        ausgabeTokens: antwort.usage.output_tokens,
-        usd: Number(usd.toFixed(4)),
-      },
-    };
+      return {
+        analyse,
+        luecken,
+        kosten: {
+          eingabeTokens: antwort.usage.input_tokens,
+          ausgabeTokens: antwort.usage.output_tokens,
+          usd: Number(usd.toFixed(4)),
+        },
+      };
+    } catch (e) {
+      if (e instanceof HttpException) throw e;
+      // Fehlender Key, Netzwerk- oder API-Fehler → sauberer Fehler statt Stacktrace.
+      throw new HttpException(
+        'Die KI-Analyse ist gerade nicht möglich. Bitte später erneut versuchen.',
+        HttpStatus.BAD_GATEWAY,
+      );
+    }
   }
 
   async staerkenAnalyse(eingabe: StaerkenEingabe) {

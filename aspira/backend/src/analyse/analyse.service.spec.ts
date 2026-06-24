@@ -89,6 +89,15 @@ describe('AnalyseService', () => {
     expect(ergebnis.luecken).toBe('');
   });
 
+  it('wirft einen sauberen Fehler, wenn Claude fehlschlägt', async () => {
+    mockCreate.mockRejectedValue(new Error('API down'));
+    await expect(
+      service.staerkenAnalyse({ cvText: 'a', firma: 'b', position: 'c', stellentext: 'd' }),
+    ).rejects.toThrow(
+      'Die KI-Analyse ist gerade nicht möglich. Bitte später erneut versuchen.',
+    );
+  });
+
   it('verfeinern arbeitet bisherige Analyse + Antworten in den Prompt ein', async () => {
     mockCreate.mockResolvedValue({
       content: [{ type: 'text', text: 'Verfeinert' }],
