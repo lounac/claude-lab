@@ -10,7 +10,7 @@ Persönliche Projekt-Sammlung (Monorepo). Jede App liegt in einem eigenen Untero
 | Ordner | Beschreibung | Stack |
 |---|---|---|
 | [`aspira/`](./aspira) | **Begleiter für Bewerbung & Karriere** – Stellen-/Bewerbungsverwaltung, KI-Stärken-Analyse, Arbeitsagentur-Bereich. _Hauptprojekt, siehe [aspira/README.md](./aspira/README.md)._ | Vue 3 + NestJS + Supabase + Claude |
-| [`trainer-app/`](./trainer-app) | Interview-Trainer (PWA): Firmenwissen-Briefing + Quiz | React + TS + Claude API |
+| [`trainer-app/`](./trainer-app) | Interview-Trainer (PWA): Firmenwissen-Briefing + Quiz. _Früher Prototyp und Lernprojekt – bewusst eingestellt, um die Arbeit auf das Hauptprojekt Aspira zu konzentrieren._ | React + TS + Claude API |
 
 ## Aufbau
 
