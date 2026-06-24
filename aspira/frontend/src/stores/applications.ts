@@ -7,15 +7,7 @@ import { supabase } from '../lib/supabase'
 import { useAuthStore } from './auth'
 import { cacheLesen, cacheSchreiben } from '../lib/applicationsCache'
 import type { Application, ApplicationInput } from '../types/application'
-
-// Macht aus technischen Fehlern verständliches Deutsch.
-function freundlicherFehler(message: string): string {
-  const m = message.toLowerCase()
-  if (m.includes('failed to fetch') || m.includes('network')) {
-    return 'Keine Internetverbindung – bitte später erneut versuchen.'
-  }
-  return message
-}
+import { freundlicherFehler } from '../lib/fehler'
 
 export const useApplicationsStore = defineStore('applications', () => {
   // Start: direkt die lokale Kopie laden → Liste ist sofort da (auch offline).

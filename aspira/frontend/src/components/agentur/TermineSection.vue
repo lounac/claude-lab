@@ -4,6 +4,7 @@
 import { ref, onMounted } from 'vue'
 import { useAgenturStore } from '../../stores/agentur'
 import type { Termin } from '../../types/agentur'
+import { datumZeit } from '../../lib/datum'
 
 const store = useAgenturStore()
 const jetzt = new Date().toISOString()
@@ -77,10 +78,6 @@ function isoZuLocalInput(iso: string): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-function datumLang(iso: string): string {
-  return new Date(iso).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
-}
-
 function istKuenftig(iso: string): boolean {
   return iso >= jetzt
 }
@@ -126,7 +123,7 @@ function istKuenftig(iso: string): boolean {
             label
             class="me-3"
           >
-            {{ datumLang(t.datum) }}
+            {{ datumZeit(t.datum) }}
           </v-chip>
         </template>
         <v-list-item-title>{{ t.titel }}</v-list-item-title>

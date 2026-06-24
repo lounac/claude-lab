@@ -5,6 +5,7 @@ import type { Application } from '../../types/application'
 import { useCv } from '../../composables/useCv'
 import { useApplicationsStore } from '../../stores/applications'
 import { supabase } from '../../lib/supabase'
+import { datumZeit } from '../../lib/datum'
 
 const props = defineProps<{ application: Application }>()
 
@@ -68,11 +69,6 @@ const gapItems = computed(() =>
       }
     }),
 )
-
-function datumDeutsch(iso: string): string {
-  if (!iso) return ''
-  return new Date(iso).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
-}
 
 function zumCv() {
   dialog.value = false
@@ -169,7 +165,7 @@ async function verfeinern() {
     Stärken-Analyse (KI)
   </v-btn>
   <p v-if="gespeichert" class="text-caption text-medium-emphasis mt-1">
-    Zuletzt analysiert: {{ datumDeutsch(gespeichert.datum) }}
+    Zuletzt analysiert: {{ datumZeit(gespeichert.datum) }}
   </p>
 
   <!-- Was mir noch fehlt für die Stelle – direkt auf der Karte, unter dem Button -->
@@ -251,7 +247,7 @@ async function verfeinern() {
         <div v-else-if="gespeichert" class="mt-4">
           <v-divider class="mb-3" />
           <p class="text-caption text-medium-emphasis mb-2">
-            Gespeicherte Analyse vom {{ datumDeutsch(gespeichert.datum) }}:
+            Gespeicherte Analyse vom {{ datumZeit(gespeichert.datum) }}:
           </p>
           <div style="white-space: pre-wrap">{{ gespeichert.text }}</div>
         </div>

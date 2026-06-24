@@ -6,15 +6,7 @@ import { defineStore } from 'pinia'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from './auth'
 import type { Termin, TerminInput, AufgabenTyp, AufgabeZustand } from '../types/agentur'
-
-// Macht aus technischen Fehlern verständliches Deutsch.
-function freundlicherFehler(message: string): string {
-  const m = message.toLowerCase()
-  if (m.includes('failed to fetch') || m.includes('network')) {
-    return 'Keine Internetverbindung – bitte später erneut versuchen.'
-  }
-  return message
-}
+import { freundlicherFehler } from '../lib/fehler'
 
 export const useAgenturStore = defineStore('agentur', () => {
   const termine = ref<Termin[]>([])

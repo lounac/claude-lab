@@ -28,6 +28,14 @@ const MAX_TOKENS = 1500; // deckelt die Antwortlänge (Kostenbremse)
 const PREIS_INPUT = 3 / 1_000_000;
 const PREIS_OUTPUT = 15 / 1_000_000;
 
+// Anweisung für die maschinenlesbare Lücken-Liste – in beiden Prompts identisch.
+const LUECKEN_FORMAT =
+  'Liste danach die „Mögliche Lücken" nach einer eigenen Zeile auf, die EXAKT ===LÜCKEN=== lautet. ' +
+  'Schreibe jede Lücke in GENAU EINE Zeile im Format Wichtigkeit|Text – Wichtigkeit ist dabei ' +
+  'exakt „wichtig" (Muss-Anforderung der Stelle) oder „nice-to-have" (wünschenswert). ' +
+  'Beispiel: wichtig|Praktische Erfahrung mit NestJS. ' +
+  'Keine Aufzählungszeichen, keine Klammern, keine weitere Formatierung. Wichtigste Punkte zuerst.';
+
 @Injectable()
 export class AnalyseService {
   private readonly anthropic: Anthropic;
@@ -98,11 +106,7 @@ export class AnalyseService {
       `3. **Offene Rückfragen** – konkrete Fragen zu Dingen, die im Lebenslauf fehlen oder unklar sind ` +
       `und die die Bewerbung für genau diese Stelle stärken würden.\n\n` +
       `Fasse dich knapp und konkret. Erfinde nichts, was nicht im Lebenslauf steht.\n\n` +
-      `Liste danach die „Mögliche Lücken" nach einer eigenen Zeile auf, die EXAKT ===LÜCKEN=== lautet. ` +
-      `Schreibe jede Lücke in GENAU EINE Zeile im Format Wichtigkeit|Text – Wichtigkeit ist dabei ` +
-      `exakt „wichtig" (Muss-Anforderung der Stelle) oder „nice-to-have" (wünschenswert). ` +
-      `Beispiel: wichtig|Praktische Erfahrung mit NestJS. ` +
-      `Keine Aufzählungszeichen, keine Klammern, keine weitere Formatierung. Wichtigste Punkte zuerst.`;
+      LUECKEN_FORMAT;
 
     return this.aufruf(auftrag);
   }
@@ -119,11 +123,7 @@ export class AnalyseService {
       `Aktualisiere die Stärken-Analyse auf Deutsch und arbeite diese Antworten ein. ` +
       `Behalte die drei Abschnitte (Passende Stärken / Mögliche Lücken / Offene Rückfragen). ` +
       `Schließe Lücken, wo die Antworten das hergeben, und stelle nur noch wirklich offene Rückfragen.\n\n` +
-      `Liste danach die „Mögliche Lücken" nach einer eigenen Zeile auf, die EXAKT ===LÜCKEN=== lautet. ` +
-      `Schreibe jede Lücke in GENAU EINE Zeile im Format Wichtigkeit|Text – Wichtigkeit ist dabei ` +
-      `exakt „wichtig" (Muss-Anforderung der Stelle) oder „nice-to-have" (wünschenswert). ` +
-      `Beispiel: wichtig|Praktische Erfahrung mit NestJS. ` +
-      `Keine Aufzählungszeichen, keine Klammern, keine weitere Formatierung. Wichtigste Punkte zuerst.`;
+      LUECKEN_FORMAT;
 
     return this.aufruf(auftrag);
   }
