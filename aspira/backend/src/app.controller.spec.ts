@@ -19,4 +19,14 @@ describe('AppController', () => {
       expect(appController.getHello()).toBe('Hello World!');
     });
   });
+
+  describe('health', () => {
+    it('liefert status "ok" und einen Zeitstempel', () => {
+      const health = appController.getHealth();
+      expect(health.status).toBe('ok');
+      expect(typeof health.zeit).toBe('string');
+      // Der Zeitstempel muss ein gültiges ISO-Datum sein.
+      expect(Number.isNaN(Date.parse(health.zeit))).toBe(false);
+    });
+  });
 });
