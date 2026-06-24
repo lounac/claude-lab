@@ -46,7 +46,9 @@ export class SupabaseAuthGuard implements CanActivate {
         },
       });
       if (!res.ok) {
-        throw new UnauthorizedException('Login-Token ungültig oder abgelaufen.');
+        throw new UnauthorizedException(
+          'Login-Token ungültig oder abgelaufen.',
+        );
       }
     } catch (e) {
       if (e instanceof UnauthorizedException) throw e;

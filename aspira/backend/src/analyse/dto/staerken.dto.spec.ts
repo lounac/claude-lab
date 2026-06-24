@@ -21,12 +21,18 @@ describe('StaerkenDto-Validierung', () => {
   });
 
   it('lehnt zu langen cvText ab (Kostenbremse greift)', async () => {
-    const dto = plainToInstance(StaerkenDto, { ...gueltig, cvText: 'x'.repeat(60_000) });
+    const dto = plainToInstance(StaerkenDto, {
+      ...gueltig,
+      cvText: 'x'.repeat(60_000),
+    });
     expect((await validate(dto)).length).toBeGreaterThan(0);
   });
 
   it('erlaubt das optionale Notizen-Feld', async () => {
-    const dto = plainToInstance(StaerkenDto, { ...gueltig, notizen: 'kurze Notiz' });
+    const dto = plainToInstance(StaerkenDto, {
+      ...gueltig,
+      notizen: 'kurze Notiz',
+    });
     expect(await validate(dto)).toHaveLength(0);
   });
 });

@@ -1,0 +1,46 @@
+name: CI
+
+# Läuft bei Push und Pull Requests auf main, sobald sich an Aspira etwas ändert.
+on:
+  push:
+    branches: [main]
+    paths: ['aspira/**', '.github/workflows/ci.yml']
+  pull_request:
+    branches: [main]
+    paths: ['aspira/**', '.github/workflows/ci.yml']
+
+jobs:
+  backend:
+    name: Backend (NestJS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aspira/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: aspira/backend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  frontend:
+    name: Frontend (Vue)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aspira/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: aspira/frontend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build

@@ -30,7 +30,9 @@ describe('AnalyseService', () => {
 
   it('zerlegt die Antwort in Analyse, Lücken und berechnet die Kosten', async () => {
     mockCreate.mockResolvedValue({
-      content: [{ type: 'text', text: 'Meine Analyse\n===LÜCKEN===\nwichtig|NestJS' }],
+      content: [
+        { type: 'text', text: 'Meine Analyse\n===LÜCKEN===\nwichtig|NestJS' },
+      ],
       usage: { input_tokens: 2000, output_tokens: 1000 },
     });
 
@@ -92,7 +94,12 @@ describe('AnalyseService', () => {
   it('wirft einen sauberen Fehler, wenn Claude fehlschlägt', async () => {
     mockCreate.mockRejectedValue(new Error('API down'));
     await expect(
-      service.staerkenAnalyse({ cvText: 'a', firma: 'b', position: 'c', stellentext: 'd' }),
+      service.staerkenAnalyse({
+        cvText: 'a',
+        firma: 'b',
+        position: 'c',
+        stellentext: 'd',
+      }),
     ).rejects.toThrow(
       'Die KI-Analyse ist gerade nicht möglich. Bitte später erneut versuchen.',
     );

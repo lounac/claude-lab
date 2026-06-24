@@ -88,7 +88,9 @@ export class AnalyseService {
       `- Position: ${eingabe.position}\n\n` +
       `Stellenbeschreibung / Anforderungen:\n` +
       `"""\n${eingabe.stellentext}\n"""\n` +
-      (eingabe.notizen ? `\nZusätzliche Notizen der Bewerberin: ${eingabe.notizen}\n` : '') +
+      (eingabe.notizen
+        ? `\nZusätzliche Notizen der Bewerberin: ${eingabe.notizen}\n`
+        : '') +
       `\nGleiche das Profil GEGEN DIESE STELLE ab und erstelle eine kurze, ehrliche ` +
       `Stärken-Analyse auf Deutsch mit genau diesen Abschnitten:\n` +
       `1. **Passende Stärken** – wo der Lebenslauf die Anforderungen der Stelle erfüllt (Stichpunkte).\n` +
