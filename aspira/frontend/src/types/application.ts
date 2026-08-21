@@ -1,16 +1,17 @@
 // Der "Bauplan" einer Bewerbung – an EINER Stelle definiert und überall wiederverwendet.
 
 // Die erlaubten Status-Werte, in sinnvoller Pipeline-Reihenfolge:
-//   interessant → in vorbereitung → beworben → antwort erhalten → interview → zusage → absage
+//   interessant → in vorbereitung → beworben → interview → warte auf Rückmeldung → zusage/absage/zurückgezogen
 // "as const" friert die Liste ein, damit TypeScript die einzelnen Werte als Typ kennt.
 export const APPLICATION_STATUSES = [
   'interessant', // Wunschfirma, noch nicht beworben
   'in vorbereitung', // Bewerbung angefangen, noch nicht abgeschickt
   'beworben',
-  'antwort erhalten',
   'interview',
+  'warte auf Rückmeldung', // nach dem Interview, Ergebnis noch offen
   'zusage',
   'absage',
+  'zurückgezogen', // selbst zurückgezogen (z.B. anderer Job gefunden, kein Interesse mehr)
 ] as const
 
 // Daraus leitet TypeScript automatisch den erlaubten Typ ab.

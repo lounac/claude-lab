@@ -10,10 +10,11 @@ const farben: Record<ApplicationStatus, string> = {
   interessant: 'blue-grey',
   'in vorbereitung': 'orange',
   beworben: 'teal',
-  'antwort erhalten': 'indigo',
   interview: 'deep-purple',
+  'warte auf Rückmeldung': 'indigo',
   zusage: 'green',
   absage: 'red',
+  zurückgezogen: 'grey',
 }
 </script>
 
