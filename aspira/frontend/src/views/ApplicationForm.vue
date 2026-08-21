@@ -26,6 +26,7 @@ const form = reactive<ApplicationInput>({
   application_date: null,
   job_url: '',
   job_description: '',
+  cover_letter: '',
   notes: '',
   next_deadline: null,
   interview_chance: null,
@@ -60,6 +61,7 @@ onMounted(async () => {
       form.application_date = vorhandene.application_date
       form.job_url = vorhandene.job_url ?? ''
       form.job_description = vorhandene.job_description ?? ''
+      form.cover_letter = vorhandene.cover_letter ?? ''
       form.notes = vorhandene.notes ?? ''
       form.next_deadline = vorhandene.next_deadline
       form.interview_chance = vorhandene.interview_chance
@@ -80,6 +82,7 @@ function bereinigt(): ApplicationInput {
     application_date: leerZuNull(form.application_date),
     job_url: leerZuNull(form.job_url),
     job_description: leerZuNull(form.job_description),
+    cover_letter: leerZuNull(form.cover_letter),
     notes: leerZuNull(form.notes),
     next_deadline: leerZuNull(form.next_deadline),
     interview_chance: form.interview_chance,
@@ -195,6 +198,14 @@ function abbrechen() {
         v-model="form.job_description"
         label="Stellenbeschreibung (für die KI-Analyse)"
         hint="Den Anzeigentext hier einfügen – dagegen vergleicht die Stärken-Analyse deinen CV."
+        persistent-hint
+        rows="4"
+        class="mb-2"
+      />
+      <v-textarea
+        v-model="form.cover_letter"
+        label="Anschreiben"
+        hint="Das tatsächlich verschickte Anschreiben – nur zur Ablage, damit du es griffbereit hast."
         persistent-hint
         rows="4"
         class="mb-2"

@@ -115,12 +115,22 @@ async function loeschenBestaetigt() {
           <p style="white-space: pre-wrap">{{ bewerbung.notes }}</p>
         </div>
 
-        <!-- Stellenbeschreibung: direkt unter den Notizen, nur der Titel, ausklappbar -->
-        <v-expansion-panels v-if="bewerbung.job_description" class="mt-4">
-          <v-expansion-panel title="Stellenbeschreibung">
+        <!-- Stellenbeschreibung + Anschreiben: direkt unter den Notizen, nur der Titel, ausklappbar -->
+        <v-expansion-panels
+          v-if="bewerbung.job_description || bewerbung.cover_letter"
+          class="mt-4"
+        >
+          <v-expansion-panel v-if="bewerbung.job_description" title="Stellenbeschreibung">
             <v-expansion-panel-text>
               <p style="white-space: pre-wrap" class="text-body-2">
                 {{ bewerbung.job_description }}
+              </p>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+          <v-expansion-panel v-if="bewerbung.cover_letter" title="Anschreiben">
+            <v-expansion-panel-text>
+              <p style="white-space: pre-wrap" class="text-body-2">
+                {{ bewerbung.cover_letter }}
               </p>
             </v-expansion-panel-text>
           </v-expansion-panel>

@@ -29,6 +29,7 @@ export interface Application {
   application_date: string | null // Bewerbungsdatum als Text 'JJJJ-MM-TT' (optional)
   job_url: string | null // Link zur Stellenanzeige (optional)
   job_description: string | null // Stellenbeschreibung/Anforderungen (für die KI-Analyse)
+  cover_letter: string | null // das tatsächlich verschickte Anschreiben (nur Ablage, keine KI)
   notes: string | null // freie Notizen (optional)
   next_deadline: string | null // nächster Termin als Text 'JJJJ-MM-TT' (optional, z.B. Frist oder Gesprächstermin)
   interview_chance: number | null // Selbsteinschätzung: Chance auf Einladung zum Erstgespräch, 0-100 (optional)
@@ -51,6 +52,7 @@ export type ApplicationInput = Pick<
   | 'application_date'
   | 'job_url'
   | 'job_description'
+  | 'cover_letter'
   | 'notes'
   | 'next_deadline'
   | 'interview_chance'
