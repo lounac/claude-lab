@@ -30,7 +30,7 @@ export interface Application {
   job_url: string | null // Link zur Stellenanzeige (optional)
   job_description: string | null // Stellenbeschreibung/Anforderungen (für die KI-Analyse)
   notes: string | null // freie Notizen (optional)
-  next_deadline: string | null // nächste Frist als Text 'JJJJ-MM-TT' (optional)
+  next_deadline: string | null // nächster Termin als Text 'JJJJ-MM-TT' (optional, z.B. Frist oder Gesprächstermin)
   interview_chance: number | null // Selbsteinschätzung: Chance auf Einladung zum Erstgespräch, 0-100 (optional)
   last_analysis: string | null // zuletzt gespeicherte KI-Stärken-Analyse
   analyzed_at: string | null // wann zuletzt analysiert (ISO-Zeit)

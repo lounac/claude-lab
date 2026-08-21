@@ -151,7 +151,7 @@ function abbrechen() {
       />
       <v-text-field
         v-model="form.next_deadline"
-        label="Nächste Frist"
+        label="Nächster Termin"
         type="date"
       />
 

@@ -26,7 +26,7 @@ defineProps<{ application: Application }>()
           v-if="application.next_deadline"
           class="text-caption text-medium-emphasis"
         >
-          Frist: {{ application.next_deadline }}
+          Termin: {{ application.next_deadline }}
         </span>
 
         <span

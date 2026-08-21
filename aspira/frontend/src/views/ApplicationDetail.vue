@@ -77,7 +77,7 @@ async function loeschenBestaetigt() {
             v-if="bewerbung.next_deadline"
             prepend-icon="mdi-calendar-clock"
             :title="bewerbung.next_deadline"
-            subtitle="Nächste Frist"
+            subtitle="Nächster Termin"
           />
           <v-list-item
             v-if="bewerbung.interview_chance !== null"
