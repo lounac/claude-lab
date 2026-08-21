@@ -33,6 +33,7 @@ const form = reactive<ApplicationInput>({
   job_description: '',
   notes: '',
   next_deadline: null,
+  interview_chance: null,
 })
 
 // Kommt man von der gefilterten Liste (z. B. Filter "interessant"), wird der
@@ -67,6 +68,7 @@ onMounted(async () => {
       form.job_description = vorhandene.job_description ?? ''
       form.notes = vorhandene.notes ?? ''
       form.next_deadline = vorhandene.next_deadline
+      form.interview_chance = vorhandene.interview_chance
     }
     laden.value = false
   }
@@ -87,6 +89,7 @@ function bereinigt(): ApplicationInput {
     job_description: leerZuNull(form.job_description),
     notes: leerZuNull(form.notes),
     next_deadline: leerZuNull(form.next_deadline),
+    interview_chance: form.interview_chance,
   }
 }
 
@@ -164,6 +167,39 @@ function abbrechen() {
         label="Nächste Frist"
         type="date"
       />
+
+      <div class="mb-4">
+        <div class="d-flex align-center justify-space-between">
+          <span class="text-body-2">
+            Einschätzung: Chance auf Einladung zum Erstgespräch
+          </span>
+          <v-btn
+            v-if="form.interview_chance !== null"
+            size="small"
+            variant="text"
+            density="compact"
+            @click="form.interview_chance = null"
+          >
+            Zurücksetzen
+          </v-btn>
+        </div>
+        <v-slider
+          :model-value="form.interview_chance ?? 0"
+          min="0"
+          max="100"
+          step="5"
+          thumb-label="always"
+          :color="form.interview_chance === null ? 'grey' : 'primary'"
+          hide-details
+          @update:model-value="form.interview_chance = $event"
+        >
+          <template #append>
+            <span class="text-body-2" style="min-width: 44px">
+              {{ form.interview_chance === null ? '–' : `${form.interview_chance}%` }}
+            </span>
+          </template>
+        </v-slider>
+      </div>
 
       <v-text-field v-model="form.source" label="Quelle (wo gefunden)" />
       <v-text-field v-model="form.contact_person" label="Ansprechpartner" />

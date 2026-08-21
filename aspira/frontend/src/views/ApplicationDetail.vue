@@ -88,6 +88,12 @@ async function loeschenBestaetigt() {
             subtitle="Nächste Frist"
           />
           <v-list-item
+            v-if="bewerbung.interview_chance !== null"
+            prepend-icon="mdi-percent"
+            :title="`${bewerbung.interview_chance}%`"
+            subtitle="Chance auf Erstgespräch (Einschätzung)"
+          />
+          <v-list-item
             v-if="bewerbung.source"
             prepend-icon="mdi-magnify"
             :title="bewerbung.source"

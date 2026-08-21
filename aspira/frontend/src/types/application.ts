@@ -36,6 +36,7 @@ export interface Application {
   job_description: string | null // Stellenbeschreibung/Anforderungen (für die KI-Analyse)
   notes: string | null // freie Notizen (optional)
   next_deadline: string | null // nächste Frist als Text 'JJJJ-MM-TT' (optional)
+  interview_chance: number | null // Selbsteinschätzung: Chance auf Einladung zum Erstgespräch, 0-100 (optional)
   last_analysis: string | null // zuletzt gespeicherte KI-Stärken-Analyse
   analyzed_at: string | null // wann zuletzt analysiert (ISO-Zeit)
   gaps: string | null // "Was mir noch fehlt für die Stelle" (aus der Analyse)
@@ -58,4 +59,5 @@ export type ApplicationInput = Pick<
   | 'job_description'
   | 'notes'
   | 'next_deadline'
+  | 'interview_chance'
 >

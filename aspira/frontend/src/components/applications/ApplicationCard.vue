@@ -37,6 +37,13 @@ defineProps<{ application: Application }>()
         >
           Frist: {{ application.next_deadline }}
         </span>
+
+        <span
+          v-if="application.interview_chance !== null"
+          class="text-caption text-medium-emphasis"
+        >
+          Chance: {{ application.interview_chance }}%
+        </span>
       </div>
     </v-card-text>
   </v-card>
