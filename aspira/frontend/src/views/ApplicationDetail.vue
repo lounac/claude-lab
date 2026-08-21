@@ -64,14 +64,6 @@ async function loeschenBestaetigt() {
           style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"
         >
           <StatusChip :status="bewerbung.status" />
-          <v-chip
-            v-if="bewerbung.priority"
-            size="small"
-            variant="tonal"
-            prepend-icon="mdi-flag-outline"
-          >
-            Priorität: {{ bewerbung.priority }}
-          </v-chip>
         </div>
 
         <v-list density="compact" class="bg-transparent">

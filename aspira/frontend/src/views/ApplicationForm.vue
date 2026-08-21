@@ -2,10 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApplicationsStore } from '../stores/applications'
-import {
-  APPLICATION_STATUSES,
-  APPLICATION_PRIORITIES,
-} from '../types/application'
+import { APPLICATION_STATUSES } from '../types/application'
 import type { ApplicationInput, ApplicationStatus } from '../types/application'
 
 const route = useRoute()
@@ -16,16 +13,14 @@ const store = useApplicationsStore()
 const id = computed(() => route.params.id as string | undefined)
 const istBearbeiten = computed(() => !!id.value)
 
-// Auswahllisten für die Dropdowns (als normale Arrays).
+// Auswahlliste für das Status-Dropdown (als normales Array).
 const statusOptionen = [...APPLICATION_STATUSES]
-const prioOptionen = [...APPLICATION_PRIORITIES]
 
 // Die Eingabefelder. Start-Status: "beworben".
 const form = reactive<ApplicationInput>({
   company_name: '',
   position: '',
   status: 'beworben',
-  priority: null,
   source: '',
   contact_person: '',
   application_date: null,
@@ -60,7 +55,6 @@ onMounted(async () => {
       form.company_name = vorhandene.company_name
       form.position = vorhandene.position
       form.status = vorhandene.status
-      form.priority = vorhandene.priority
       form.source = vorhandene.source ?? ''
       form.contact_person = vorhandene.contact_person ?? ''
       form.application_date = vorhandene.application_date
@@ -81,7 +75,6 @@ function bereinigt(): ApplicationInput {
     company_name: form.company_name,
     position: form.position,
     status: form.status,
-    priority: form.priority,
     source: leerZuNull(form.source),
     contact_person: leerZuNull(form.contact_person),
     application_date: leerZuNull(form.application_date),
@@ -150,12 +143,6 @@ function abbrechen() {
       <v-text-field v-model="form.position" label="Position" />
 
       <v-select v-model="form.status" :items="statusOptionen" label="Status" />
-      <v-select
-        v-model="form.priority"
-        :items="prioOptionen"
-        label="Priorität"
-        clearable
-      />
 
       <v-text-field
         v-model="form.application_date"

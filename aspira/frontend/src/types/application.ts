@@ -17,10 +17,6 @@ export const APPLICATION_STATUSES = [
 // Daraus leitet TypeScript automatisch den erlaubten Typ ab.
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
 
-// Prioritäts-Stufen (für die Sortierung von Wunschfirmen).
-export const APPLICATION_PRIORITIES = ['hoch', 'mittel', 'niedrig'] as const
-export type ApplicationPriority = (typeof APPLICATION_PRIORITIES)[number]
-
 // So sieht eine vollständige Bewerbung aus, wie sie in der Datenbank gespeichert ist.
 export interface Application {
   id: string // eindeutige Kennung (uuid), vergibt die Datenbank
@@ -28,7 +24,6 @@ export interface Application {
   company_name: string // Firmenname
   position: string // Stellenbezeichnung
   status: ApplicationStatus // aktueller Stand (siehe oben)
-  priority: ApplicationPriority | null // wie wichtig dir die Firma ist (optional)
   source: string | null // wo gefunden: LinkedIn, StepStone, Website … (optional)
   contact_person: string | null // Ansprechpartner:in / Kontakt (optional)
   application_date: string | null // Bewerbungsdatum als Text 'JJJJ-MM-TT' (optional)
@@ -51,7 +46,6 @@ export type ApplicationInput = Pick<
   | 'company_name'
   | 'position'
   | 'status'
-  | 'priority'
   | 'source'
   | 'contact_person'
   | 'application_date'
