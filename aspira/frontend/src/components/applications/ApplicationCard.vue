@@ -22,20 +22,18 @@ defineProps<{ application: Application }>()
       <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
         <StatusChip :status="application.status" />
 
-        <v-chip
-          v-if="application.priority"
-          size="small"
-          variant="tonal"
-          prepend-icon="mdi-flag-outline"
-        >
-          Priorität: {{ application.priority }}
-        </v-chip>
-
         <span
           v-if="application.next_deadline"
           class="text-caption text-medium-emphasis"
         >
-          Frist: {{ application.next_deadline }}
+          Termin: {{ application.next_deadline }}
+        </span>
+
+        <span
+          v-if="application.interview_chance !== null"
+          class="text-caption text-medium-emphasis"
+        >
+          Chance: {{ application.interview_chance }}%
         </span>
       </div>
     </v-card-text>

@@ -2,10 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApplicationsStore } from '../stores/applications'
-import {
-  APPLICATION_STATUSES,
-  APPLICATION_PRIORITIES,
-} from '../types/application'
+import { APPLICATION_STATUSES } from '../types/application'
 import type { ApplicationInput, ApplicationStatus } from '../types/application'
 
 const route = useRoute()
@@ -16,23 +13,23 @@ const store = useApplicationsStore()
 const id = computed(() => route.params.id as string | undefined)
 const istBearbeiten = computed(() => !!id.value)
 
-// Auswahllisten für die Dropdowns (als normale Arrays).
+// Auswahlliste für das Status-Dropdown (als normales Array).
 const statusOptionen = [...APPLICATION_STATUSES]
-const prioOptionen = [...APPLICATION_PRIORITIES]
 
 // Die Eingabefelder. Start-Status: "beworben".
 const form = reactive<ApplicationInput>({
   company_name: '',
   position: '',
   status: 'beworben',
-  priority: null,
   source: '',
   contact_person: '',
   application_date: null,
   job_url: '',
   job_description: '',
+  cover_letter: '',
   notes: '',
   next_deadline: null,
+  interview_chance: null,
 })
 
 // Kommt man von der gefilterten Liste (z. B. Filter "interessant"), wird der
@@ -59,14 +56,15 @@ onMounted(async () => {
       form.company_name = vorhandene.company_name
       form.position = vorhandene.position
       form.status = vorhandene.status
-      form.priority = vorhandene.priority
       form.source = vorhandene.source ?? ''
       form.contact_person = vorhandene.contact_person ?? ''
       form.application_date = vorhandene.application_date
       form.job_url = vorhandene.job_url ?? ''
       form.job_description = vorhandene.job_description ?? ''
+      form.cover_letter = vorhandene.cover_letter ?? ''
       form.notes = vorhandene.notes ?? ''
       form.next_deadline = vorhandene.next_deadline
+      form.interview_chance = vorhandene.interview_chance
     }
     laden.value = false
   }
@@ -79,14 +77,15 @@ function bereinigt(): ApplicationInput {
     company_name: form.company_name,
     position: form.position,
     status: form.status,
-    priority: form.priority,
     source: leerZuNull(form.source),
     contact_person: leerZuNull(form.contact_person),
     application_date: leerZuNull(form.application_date),
     job_url: leerZuNull(form.job_url),
     job_description: leerZuNull(form.job_description),
+    cover_letter: leerZuNull(form.cover_letter),
     notes: leerZuNull(form.notes),
     next_deadline: leerZuNull(form.next_deadline),
+    interview_chance: form.interview_chance,
   }
 }
 
@@ -147,12 +146,6 @@ function abbrechen() {
       <v-text-field v-model="form.position" label="Position" />
 
       <v-select v-model="form.status" :items="statusOptionen" label="Status" />
-      <v-select
-        v-model="form.priority"
-        :items="prioOptionen"
-        label="Priorität"
-        clearable
-      />
 
       <v-text-field
         v-model="form.application_date"
@@ -161,9 +154,42 @@ function abbrechen() {
       />
       <v-text-field
         v-model="form.next_deadline"
-        label="Nächste Frist"
+        label="Nächster Termin"
         type="date"
       />
+
+      <div class="mb-4">
+        <div class="d-flex align-center justify-space-between">
+          <span class="text-body-2">
+            Einschätzung: Chance auf Einladung zum Erstgespräch
+          </span>
+          <v-btn
+            v-if="form.interview_chance !== null"
+            size="small"
+            variant="text"
+            density="compact"
+            @click="form.interview_chance = null"
+          >
+            Zurücksetzen
+          </v-btn>
+        </div>
+        <v-slider
+          :model-value="form.interview_chance ?? 0"
+          min="0"
+          max="100"
+          step="5"
+          thumb-label="always"
+          :color="form.interview_chance === null ? 'grey' : 'primary'"
+          hide-details
+          @update:model-value="form.interview_chance = $event"
+        >
+          <template #append>
+            <span class="text-body-2" style="min-width: 44px">
+              {{ form.interview_chance === null ? '–' : `${form.interview_chance}%` }}
+            </span>
+          </template>
+        </v-slider>
+      </div>
 
       <v-text-field v-model="form.source" label="Quelle (wo gefunden)" />
       <v-text-field v-model="form.contact_person" label="Ansprechpartner" />
@@ -172,6 +198,14 @@ function abbrechen() {
         v-model="form.job_description"
         label="Stellenbeschreibung (für die KI-Analyse)"
         hint="Den Anzeigentext hier einfügen – dagegen vergleicht die Stärken-Analyse deinen CV."
+        persistent-hint
+        rows="4"
+        class="mb-2"
+      />
+      <v-textarea
+        v-model="form.cover_letter"
+        label="Anschreiben"
+        hint="Das tatsächlich verschickte Anschreiben – nur zur Ablage, damit du es griffbereit hast."
         persistent-hint
         rows="4"
         class="mb-2"

@@ -1,24 +1,21 @@
 // Der "Bauplan" einer Bewerbung – an EINER Stelle definiert und überall wiederverwendet.
 
 // Die erlaubten Status-Werte, in sinnvoller Pipeline-Reihenfolge:
-//   interessant → in vorbereitung → beworben → antwort erhalten → interview → zusage → absage
+//   interessant → in vorbereitung → beworben → interview → warte auf Rückmeldung → zusage/absage/zurückgezogen
 // "as const" friert die Liste ein, damit TypeScript die einzelnen Werte als Typ kennt.
 export const APPLICATION_STATUSES = [
   'interessant', // Wunschfirma, noch nicht beworben
   'in vorbereitung', // Bewerbung angefangen, noch nicht abgeschickt
   'beworben',
-  'antwort erhalten',
   'interview',
+  'warte auf Rückmeldung', // nach dem Interview, Ergebnis noch offen
   'zusage',
   'absage',
+  'zurückgezogen', // selbst zurückgezogen (z.B. anderer Job gefunden, kein Interesse mehr)
 ] as const
 
 // Daraus leitet TypeScript automatisch den erlaubten Typ ab.
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
-
-// Prioritäts-Stufen (für die Sortierung von Wunschfirmen).
-export const APPLICATION_PRIORITIES = ['hoch', 'mittel', 'niedrig'] as const
-export type ApplicationPriority = (typeof APPLICATION_PRIORITIES)[number]
 
 // So sieht eine vollständige Bewerbung aus, wie sie in der Datenbank gespeichert ist.
 export interface Application {
@@ -27,14 +24,15 @@ export interface Application {
   company_name: string // Firmenname
   position: string // Stellenbezeichnung
   status: ApplicationStatus // aktueller Stand (siehe oben)
-  priority: ApplicationPriority | null // wie wichtig dir die Firma ist (optional)
   source: string | null // wo gefunden: LinkedIn, StepStone, Website … (optional)
   contact_person: string | null // Ansprechpartner:in / Kontakt (optional)
   application_date: string | null // Bewerbungsdatum als Text 'JJJJ-MM-TT' (optional)
   job_url: string | null // Link zur Stellenanzeige (optional)
   job_description: string | null // Stellenbeschreibung/Anforderungen (für die KI-Analyse)
+  cover_letter: string | null // das tatsächlich verschickte Anschreiben (nur Ablage, keine KI)
   notes: string | null // freie Notizen (optional)
-  next_deadline: string | null // nächste Frist als Text 'JJJJ-MM-TT' (optional)
+  next_deadline: string | null // nächster Termin als Text 'JJJJ-MM-TT' (optional, z.B. Frist oder Gesprächstermin)
+  interview_chance: number | null // Selbsteinschätzung: Chance auf Einladung zum Erstgespräch, 0-100 (optional)
   last_analysis: string | null // zuletzt gespeicherte KI-Stärken-Analyse
   analyzed_at: string | null // wann zuletzt analysiert (ISO-Zeit)
   gaps: string | null // "Was mir noch fehlt für die Stelle" (aus der Analyse)
@@ -49,12 +47,13 @@ export type ApplicationInput = Pick<
   | 'company_name'
   | 'position'
   | 'status'
-  | 'priority'
   | 'source'
   | 'contact_person'
   | 'application_date'
   | 'job_url'
   | 'job_description'
+  | 'cover_letter'
   | 'notes'
   | 'next_deadline'
+  | 'interview_chance'
 >

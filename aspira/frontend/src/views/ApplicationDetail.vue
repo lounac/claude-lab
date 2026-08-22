@@ -64,14 +64,6 @@ async function loeschenBestaetigt() {
           style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"
         >
           <StatusChip :status="bewerbung.status" />
-          <v-chip
-            v-if="bewerbung.priority"
-            size="small"
-            variant="tonal"
-            prepend-icon="mdi-flag-outline"
-          >
-            Priorität: {{ bewerbung.priority }}
-          </v-chip>
         </div>
 
         <v-list density="compact" class="bg-transparent">
@@ -85,7 +77,13 @@ async function loeschenBestaetigt() {
             v-if="bewerbung.next_deadline"
             prepend-icon="mdi-calendar-clock"
             :title="bewerbung.next_deadline"
-            subtitle="Nächste Frist"
+            subtitle="Nächster Termin"
+          />
+          <v-list-item
+            v-if="bewerbung.interview_chance !== null"
+            prepend-icon="mdi-percent"
+            :title="`${bewerbung.interview_chance}%`"
+            subtitle="Chance auf Erstgespräch (Einschätzung)"
           />
           <v-list-item
             v-if="bewerbung.source"
@@ -117,12 +115,22 @@ async function loeschenBestaetigt() {
           <p style="white-space: pre-wrap">{{ bewerbung.notes }}</p>
         </div>
 
-        <!-- Stellenbeschreibung: direkt unter den Notizen, nur der Titel, ausklappbar -->
-        <v-expansion-panels v-if="bewerbung.job_description" class="mt-4">
-          <v-expansion-panel title="Stellenbeschreibung">
+        <!-- Stellenbeschreibung + Anschreiben: direkt unter den Notizen, nur der Titel, ausklappbar -->
+        <v-expansion-panels
+          v-if="bewerbung.job_description || bewerbung.cover_letter"
+          class="mt-4"
+        >
+          <v-expansion-panel v-if="bewerbung.job_description" title="Stellenbeschreibung">
             <v-expansion-panel-text>
               <p style="white-space: pre-wrap" class="text-body-2">
                 {{ bewerbung.job_description }}
+              </p>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+          <v-expansion-panel v-if="bewerbung.cover_letter" title="Anschreiben">
+            <v-expansion-panel-text>
+              <p style="white-space: pre-wrap" class="text-body-2">
+                {{ bewerbung.cover_letter }}
               </p>
             </v-expansion-panel-text>
           </v-expansion-panel>
