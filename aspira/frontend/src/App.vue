@@ -38,9 +38,9 @@ async function abmelden() {
     <v-app-bar color="primary" density="comfortable">
       <!-- Haupt-Bereiche: Stellen | Agentur (nur eingeloggt) -->
       <template v-if="auth.user">
-        <v-btn icon="mdi-clipboard-text-outline" title="Meine Stellen" to="/" exact />
+        <v-btn icon="mdi-clipboard-text-outline" title="Meine Stellen" to="/" exact replace />
         <v-divider vertical class="mx-1 my-3" />
-        <v-btn icon="mdi-bank-outline" title="Arbeitsagentur" to="/agentur" />
+        <v-btn icon="mdi-bank-outline" title="Arbeitsagentur" to="/agentur" replace />
       </template>
 
       <v-spacer />
@@ -48,6 +48,7 @@ async function abmelden() {
       <!-- App-Name, mittig -->
       <router-link
         to="/"
+        replace
         class="flex-shrink-0 mx-2 text-decoration-none"
         style="color: inherit; font-size: 1.2rem; font-weight: 500"
       >
