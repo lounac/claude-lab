@@ -1,10 +1,14 @@
 // Der "Bauplan" einer Bewerbung – an EINER Stelle definiert und überall wiederverwendet.
 
-// Die erlaubten Status-Werte, in sinnvoller Pipeline-Reihenfolge:
-//   interessant → in vorbereitung → beworben → interview → warte auf Rückmeldung → zusage/absage/zurückgezogen
+// Die erlaubten Status-Werte, in sinnvoller Pipeline-Reihenfolge.
+// Zwei mögliche Startpunkte: "interessant" (ich werde aktiv) oder
+// "Telefonat nach Recruiter-Anfrage" (Firma/Recruiter meldet sich zuerst).
+//   interessant / Telefonat nach Recruiter-Anfrage → in vorbereitung → beworben
+//     → interview → warte auf Rückmeldung → zusage/absage/zurückgezogen
 // "as const" friert die Liste ein, damit TypeScript die einzelnen Werte als Typ kennt.
 export const APPLICATION_STATUSES = [
   'interessant', // Wunschfirma, noch nicht beworben
+  'Telefonat nach Recruiter-Anfrage', // Recruiter meldet sich unaufgefordert (z.B. LinkedIn), Call vereinbart
   'in vorbereitung', // Bewerbung angefangen, noch nicht abgeschickt
   'beworben',
   'interview',
