@@ -1,5 +1,6 @@
 // Zentraler "Speicher" für den Login-Zustand (Pinia-Store).
 // Merkt sich, wer eingeloggt ist, und bietet die Login-Aktionen an.
+// Eine Registrierung gibt es nicht: Konten werden im Supabase-Dashboard angelegt.
 
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
@@ -27,19 +28,28 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
-  // Registrieren mit E-Mail + Passwort.
-  // (E-Mail-Bestätigung ist aus → es entsteht direkt eine Session.)
-  async function signUp(email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({ email, password })
-    if (error) throw error
-    user.value = data.session?.user ?? null
-  }
-
   // Einloggen mit E-Mail + Passwort.
   async function signIn(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
     user.value = data.session?.user ?? null
+  }
+
+  // Schickt eine E-Mail mit einem Link zum Zurücksetzen des Passworts.
+  // Der Link führt auf /passwort-neu – diese Adresse muss in Supabase unter
+  // Authentication → URL Configuration → Redirect URLs erlaubt sein.
+  async function passwortLinkSenden(email: string) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/passwort-neu`,
+    })
+    if (error) throw error
+  }
+
+  // Setzt ein neues Passwort für die angemeldete Person.
+  // (Nach Klick auf den Link aus der E-Mail ist man automatisch angemeldet.)
+  async function passwortSetzen(passwort: string) {
+    const { error } = await supabase.auth.updateUser({ password: passwort })
+    if (error) throw error
   }
 
   // Ausloggen.
@@ -51,5 +61,5 @@ export const useAuthStore = defineStore('auth', () => {
     cvCacheLeeren() // lokale CV-Kopie entfernen
   }
 
-  return { user, loading, init, signUp, signIn, signOut }
+  return { user, loading, init, signIn, passwortLinkSenden, passwortSetzen, signOut }
 })

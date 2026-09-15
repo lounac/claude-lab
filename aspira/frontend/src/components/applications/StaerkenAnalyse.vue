@@ -7,7 +7,9 @@ import { useApplicationsStore } from '../../stores/applications'
 import { supabase } from '../../lib/supabase'
 import { datumZeit } from '../../lib/datum'
 
-const props = defineProps<{ application: Application }>()
+// aktiv = neue Analysen dürfen gestartet werden. Ist die Analyse pausiert (false),
+// bleiben gespeicherte Analyse und Lücken trotzdem sichtbar.
+const props = defineProps<{ application: Application; aktiv: boolean }>()
 
 const router = useRouter()
 const store = useApplicationsStore()
@@ -15,8 +17,9 @@ const { cv, laden } = useCv() // nur lesen – verwaltet wird der CV unter „Me
 
 // Beim Öffnen den CV aus Supabase holen (wichtig auf einem neuen Gerät,
 // falls vorher nicht extra die „Mein CV"-Seite besucht wurde).
+// Bei pausierter Analyse wird der CV hier nicht gebraucht.
 onMounted(() => {
-  laden()
+  if (props.aktiv) laden()
 })
 
 const hatStellentext = computed(() => !!props.application.job_description)
@@ -76,7 +79,7 @@ function zumCv() {
 }
 
 async function analysieren() {
-  if (!cv.value) return
+  if (!props.aktiv || !cv.value) return
   laeuft.value = true
   fehler.value = ''
   ergebnis.value = null
@@ -116,7 +119,7 @@ async function analysieren() {
 
 async function verfeinern() {
   const basis = ergebnis.value?.analyse ?? gespeichert.value?.text
-  if (!cv.value || !basis || !antworten.value.trim()) return
+  if (!props.aktiv || !cv.value || !basis || !antworten.value.trim()) return
   laeuft.value = true
   fehler.value = ''
   try {
@@ -157,12 +160,13 @@ async function verfeinern() {
 
 <template>
   <v-btn
+    v-if="aktiv || gespeichert"
     color="primary"
     variant="tonal"
-    prepend-icon="mdi-brain"
+    :prepend-icon="aktiv ? 'mdi-brain' : 'mdi-text-box-search-outline'"
     @click="dialog = true"
   >
-    Stärken-Analyse (KI)
+    {{ aktiv ? 'Stärken-Analyse (KI)' : 'Gespeicherte Analyse ansehen' }}
   </v-btn>
   <p v-if="gespeichert" class="text-caption text-medium-emphasis mt-1">
     Zuletzt analysiert: {{ datumZeit(gespeichert.datum) }}
@@ -198,36 +202,44 @@ async function verfeinern() {
     <v-card>
       <v-card-title>Stärken-Analyse</v-card-title>
       <v-card-text>
-        <!-- CV-Status (verwaltet wird er unter „Mein CV") -->
-        <v-alert v-if="!cv" type="info" density="compact" class="mb-3">
-          Du hast noch keinen Lebenslauf hinterlegt.
-          <a href="#" @click.prevent="zumCv">Jetzt unter „Mein CV" anlegen</a>.
-        </v-alert>
-        <div v-else class="mb-3 d-flex align-center" style="gap: 8px">
-          <v-icon color="success">mdi-file-check-outline</v-icon>
-          <span>Lebenslauf: <strong>{{ cv.name }}</strong></span>
-          <v-spacer />
-          <v-btn size="small" variant="text" @click="zumCv">verwalten</v-btn>
-        </div>
+        <template v-if="aktiv">
+          <!-- CV-Status (verwaltet wird er unter „Mein CV") -->
+          <v-alert v-if="!cv" type="info" density="compact" class="mb-3">
+            Du hast noch keinen Lebenslauf hinterlegt.
+            <a href="#" @click.prevent="zumCv">Jetzt unter „Mein CV" anlegen</a>.
+          </v-alert>
+          <div v-else class="mb-3 d-flex align-center" style="gap: 8px">
+            <v-icon color="success">mdi-file-check-outline</v-icon>
+            <span>Lebenslauf: <strong>{{ cv.name }}</strong></span>
+            <v-spacer />
+            <v-btn size="small" variant="text" @click="zumCv">verwalten</v-btn>
+          </div>
 
-        <!-- Hinweis, wenn keine Stellenbeschreibung hinterlegt ist -->
-        <v-alert v-if="!hatStellentext" type="info" density="compact" class="mb-3">
-          Für diese Stelle ist noch keine <strong>Stellenbeschreibung</strong> hinterlegt.
-          Trag sie über „Bearbeiten" ein – nur dann kann Claude deinen CV dagegen vergleichen.
-        </v-alert>
+          <!-- Hinweis, wenn keine Stellenbeschreibung hinterlegt ist -->
+          <v-alert v-if="!hatStellentext" type="info" density="compact" class="mb-3">
+            Für diese Stelle ist noch keine <strong>Stellenbeschreibung</strong> hinterlegt.
+            Trag sie über „Bearbeiten" ein – nur dann kann Claude deinen CV dagegen vergleichen.
+          </v-alert>
 
-        <v-btn
-          color="primary"
-          :disabled="!cv || !hatStellentext || laeuft"
-          :loading="laeuft"
-          prepend-icon="mdi-creation"
-          @click="analysieren"
-        >
-          {{ gespeichert ? 'Neu analysieren' : 'Analyse starten' }}
-        </v-btn>
-        <p class="text-caption text-medium-emphasis mt-2">
-          Jede Analyse kostet ein paar Cent (Claude-API).
-        </p>
+          <v-btn
+            color="primary"
+            :disabled="!cv || !hatStellentext || laeuft"
+            :loading="laeuft"
+            prepend-icon="mdi-creation"
+            @click="analysieren"
+          >
+            {{ gespeichert ? 'Neu analysieren' : 'Analyse starten' }}
+          </v-btn>
+          <p class="text-caption text-medium-emphasis mt-2">
+            Jede Analyse kostet ein paar Cent (Claude-API).
+          </p>
+        </template>
+
+        <!-- Pausiert: nur Hinweis, keine Aktionen -->
+        <v-alert v-else type="info" density="compact" class="mb-3">
+          Die KI-Analyse ist gerade pausiert. Gespeicherte Ergebnisse kannst du weiterhin
+          ansehen.
+        </v-alert>
 
         <v-alert v-if="fehler" type="error" density="compact" class="mt-4">
           {{ fehler }}
@@ -252,8 +264,8 @@ async function verfeinern() {
           <div style="white-space: pre-wrap">{{ gespeichert.text }}</div>
         </div>
 
-        <!-- Rückfragen beantworten → Claude verfeinert -->
-        <div v-if="ergebnis || gespeichert" class="mt-4">
+        <!-- Rückfragen beantworten → Claude verfeinert (nur bei aktiver Analyse) -->
+        <div v-if="aktiv && (ergebnis || gespeichert)" class="mt-4">
           <v-divider class="mb-3" />
           <p class="text-subtitle-2 mb-1">Rückfragen beantworten / Infos ergänzen</p>
           <v-textarea

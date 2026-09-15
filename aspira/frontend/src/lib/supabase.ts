@@ -2,6 +2,7 @@
 // Diese Datei wird einmal geladen und überall in der App wiederverwendet.
 
 import { createClient } from '@supabase/supabase-js'
+import { istPasswortLink } from './passwortLink'
 
 // Die zwei Werte kommen aus deiner .env.local (Präfix VITE_ macht sie hier sichtbar).
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
@@ -15,6 +16,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
       'VITE_SUPABASE_ANON_KEY in der Datei .env.local stehen.',
   )
 }
+
+// Kam die App über den Link aus der "Passwort vergessen"-Mail? Das muss VOR createClient
+// gemerkt werden – Supabase liest die Adresse danach aus und entfernt die Angaben.
+export const startetMitPasswortLink = istPasswortLink(window.location.hash)
 
 // Der "Client" ist unser Werkzeug für alle Datenbank- und Login-Aktionen.
 // Aspiras Tabellen liegen im eigenen Schema "aspira": Das Supabase-Projekt
