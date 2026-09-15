@@ -1,0 +1,4 @@
+node_modules
+# Sicherheitsnetz: Sicherungen gehören NICHT ins Repo (persönliche Daten).
+sicherung*/
+service-account*.json

@@ -17,4 +17,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Der "Client" ist unser Werkzeug für alle Datenbank- und Login-Aktionen.
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Aspiras Tabellen liegen im eigenen Schema "aspira": Das Supabase-Projekt
+// wird mit Sapora geteilt, deren Tabellen liegen in "public".
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  db: { schema: 'aspira' },
+})
