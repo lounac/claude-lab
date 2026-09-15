@@ -1,0 +1,14 @@
+{
+  "name": "aspira-sicherung",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Sicherung von Schema und Daten des Aspira-Supabase-Projekts",
+  "scripts": {
+    "export": "node export-supabase.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.108.2"
+  }
+}
