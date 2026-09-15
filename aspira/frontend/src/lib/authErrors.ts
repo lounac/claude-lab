@@ -18,6 +18,9 @@ export function uebersetzeAuthFehler(nachricht: string): string {
   if (m.includes('email not confirmed')) {
     return 'Bitte bestätige zuerst deine E-Mail-Adresse.'
   }
+  if (m.includes('rate limit')) {
+    return 'Zu viele Versuche – bitte warte kurz und versuche es dann erneut.'
+  }
 
   // Unbekannter Fehler: Originaltext zeigen (besser als gar nichts).
   return nachricht

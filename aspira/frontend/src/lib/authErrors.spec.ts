@@ -18,6 +18,10 @@ describe('uebersetzeAuthFehler', () => {
     )
   })
 
+  it('erkennt zu viele Login-Versuche', () => {
+    expect(uebersetzeAuthFehler('Request rate limit reached')).toContain('Zu viele Versuche')
+  })
+
   it('ist unabhängig von Groß-/Kleinschreibung', () => {
     expect(uebersetzeAuthFehler('INVALID LOGIN CREDENTIALS')).toBe(
       'E-Mail oder Passwort ist falsch.',

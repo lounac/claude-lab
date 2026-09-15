@@ -5,6 +5,7 @@ import { useApplicationsStore } from '../stores/applications'
 import type { Application } from '../types/application'
 import StatusChip from '../components/applications/StatusChip.vue'
 import StaerkenAnalyse from '../components/applications/StaerkenAnalyse.vue'
+import { analyseAktiv } from '../lib/analyse'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,9 +18,12 @@ const laden = ref(true)
 const loeschDialog = ref(false)
 const loescht = ref(false)
 
-// KI-Analyse nur zeigen, wo ein Backend erreichbar ist:
-// lokal (Entwicklung) oder wenn VITE_API_URL gesetzt ist (gehostetes Backend).
-const kiVerfuegbar = import.meta.env.DEV || !!import.meta.env.VITE_API_URL
+// Neue KI-Analysen nur, wenn sie eingeschaltet ist (VITE_ANALYSE_AKTIV=true) UND ein
+// Backend erreichbar ist: lokal (Entwicklung) oder mit VITE_API_URL (gehostetes Backend).
+// Gespeicherte Ergebnisse bleiben auch bei pausierter Analyse sichtbar.
+const kiAktiv =
+  analyseAktiv(import.meta.env.VITE_ANALYSE_AKTIV) &&
+  (import.meta.env.DEV || !!import.meta.env.VITE_API_URL)
 
 onMounted(async () => {
   bewerbung.value = await store.getById(id)
@@ -136,9 +140,9 @@ async function loeschenBestaetigt() {
           </v-expansion-panel>
         </v-expansion-panels>
 
-        <!-- KI-Stärken-Analyse: nur, wo ein Backend erreichbar ist -->
-        <div v-if="kiVerfuegbar" class="mt-4">
-          <StaerkenAnalyse :application="bewerbung" />
+        <!-- KI-Stärken-Analyse: starten nur wenn aktiv; Gespeichertes immer sichtbar -->
+        <div v-if="kiAktiv || bewerbung.last_analysis || bewerbung.gaps" class="mt-4">
+          <StaerkenAnalyse :application="bewerbung" :aktiv="kiAktiv" />
         </div>
       </v-card-text>
 

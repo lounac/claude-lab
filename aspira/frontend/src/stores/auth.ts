@@ -1,5 +1,6 @@
 // Zentraler "Speicher" für den Login-Zustand (Pinia-Store).
 // Merkt sich, wer eingeloggt ist, und bietet die Login-Aktionen an.
+// Eine Registrierung gibt es nicht: Konten werden im Supabase-Dashboard angelegt.
 
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
@@ -27,14 +28,6 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
-  // Registrieren mit E-Mail + Passwort.
-  // (E-Mail-Bestätigung ist aus → es entsteht direkt eine Session.)
-  async function signUp(email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({ email, password })
-    if (error) throw error
-    user.value = data.session?.user ?? null
-  }
-
   // Einloggen mit E-Mail + Passwort.
   async function signIn(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
@@ -51,5 +44,5 @@ export const useAuthStore = defineStore('auth', () => {
     cvCacheLeeren() // lokale CV-Kopie entfernen
   }
 
-  return { user, loading, init, signUp, signIn, signOut }
+  return { user, loading, init, signIn, signOut }
 })

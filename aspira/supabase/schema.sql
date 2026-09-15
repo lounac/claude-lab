@@ -6,9 +6,8 @@
 -- Sie DOKUMENTIERT den Ist-Zustand und wird nicht automatisch ausgeführt.
 --
 -- Das Supabase-Projekt wird mit Sapora geteilt: Aspira liegt im Schema "aspira",
--- "public" gehört Sapora.
---
--- Es gibt keine Trigger und keine eigenen Funktionen.
+-- "public" gehört Sapora. Die Nutzerliste (auth.users) ist gemeinsam – deshalb
+-- erlauben die Policies ausschließlich das Konto in aspira.ist_erlaubt().
 
 create schema aspira;
 grant usage on schema aspira to anon, authenticated, service_role; -- 001
@@ -29,7 +28,7 @@ create table aspira.applications (
   notes            text,
   next_deadline    date,
   created_at       timestamptz          default now(),
-  updated_at       timestamptz          default now(),
+  updated_at       timestamptz          default now(), -- per Trigger aktualisiert (003)
   -- (Spalten-Position 12 fehlt: gelöschte Spalte, vermutlich das Prioritäts-Feld aus #46)
   source           text,
   contact_person   text,
@@ -40,7 +39,7 @@ create table aspira.applications (
   interview_chance integer,
   cover_letter     text,
   constraint applications_pkey primary key (id),
-  constraint applications_user_id_fkey foreign key (user_id) references auth.users (id),
+  constraint applications_user_id_fkey foreign key (user_id) references auth.users (id) on delete cascade, -- 003
   constraint applications_status_check check (status = any (array[
     'interessant', 'Telefonat nach Recruiter-Anfrage', 'in vorbereitung', 'beworben',
     'interview', 'warte auf Rückmeldung', 'zusage', 'absage', 'zurückgezogen'
@@ -52,7 +51,7 @@ create table aspira.cv (
   user_id    uuid        not null,
   cv_name    text,
   cv_text    text        not null,
-  updated_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(), -- per Trigger aktualisiert (003)
   constraint cv_pkey primary key (user_id),
   constraint cv_user_id_fkey foreign key (user_id) references auth.users (id) on delete cascade
 );
@@ -78,7 +77,7 @@ create table aspira.agentur_aufgaben (
   erledigt   boolean     not null default false,
   datum      date,
   notiz      text,
-  updated_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(), -- per Trigger aktualisiert (003)
   constraint agentur_aufgaben_pkey primary key (user_id, schluessel),
   constraint agentur_aufgaben_user_id_fkey foreign key (user_id) references auth.users (id) on delete cascade
 );
@@ -86,7 +85,39 @@ create table aspira.agentur_aufgaben (
 -- Indexe: nur die der Primärschlüssel (automatisch angelegt).
 
 -- ---------------------------------------------------------------------------
--- Row Level Security
+-- Funktionen (003)
+-- ---------------------------------------------------------------------------
+
+-- Wer darf Aspira nutzen? Angemeldet UND genau dieses Konto.
+create function aspira.ist_erlaubt(uid uuid)
+returns boolean language sql stable set search_path = ''
+as $$
+  select (select auth.uid()) = uid
+     and uid = '07702ab5-48df-441b-96fa-03d67bfdd172'::uuid;
+$$;
+revoke all on function aspira.ist_erlaubt(uuid) from public;
+grant execute on function aspira.ist_erlaubt(uuid) to authenticated;
+
+-- Setzt updated_at bei jeder Änderung.
+create function aspira.setze_updated_at()
+returns trigger language plpgsql set search_path = ''
+as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+revoke all on function aspira.setze_updated_at() from public;
+
+create trigger applications_updated_at before update on aspira.applications
+  for each row execute function aspira.setze_updated_at();
+create trigger cv_updated_at before update on aspira.cv
+  for each row execute function aspira.setze_updated_at();
+create trigger agentur_aufgaben_updated_at before update on aspira.agentur_aufgaben
+  for each row execute function aspira.setze_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- Row Level Security (003)
 -- ---------------------------------------------------------------------------
 
 alter table aspira.applications     enable row level security;
@@ -94,47 +125,29 @@ alter table aspira.cv               enable row level security;
 alter table aspira.agentur_termine  enable row level security;
 alter table aspira.agentur_aufgaben enable row level security;
 
-create policy "Users can manage own applications" on aspira.applications
-  for all to public
-  using (auth.uid() = user_id);
+create policy "Nur eigenes Konto" on aspira.applications
+  for all to authenticated
+  using (aspira.ist_erlaubt(user_id)) with check (aspira.ist_erlaubt(user_id));
 
-create policy "Users can manage own cv" on aspira.cv
-  for all to public
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+create policy "Nur eigenes Konto" on aspira.cv
+  for all to authenticated
+  using (aspira.ist_erlaubt(user_id)) with check (aspira.ist_erlaubt(user_id));
 
-create policy "Users can manage own agentur_termine" on aspira.agentur_termine
-  for all to public
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+create policy "Nur eigenes Konto" on aspira.agentur_termine
+  for all to authenticated
+  using (aspira.ist_erlaubt(user_id)) with check (aspira.ist_erlaubt(user_id));
 
-create policy "Users can manage own agentur_aufgaben" on aspira.agentur_aufgaben
-  for all to public
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+create policy "Nur eigenes Konto" on aspira.agentur_aufgaben
+  for all to authenticated
+  using (aspira.ist_erlaubt(user_id)) with check (aspira.ist_erlaubt(user_id));
 
 -- ---------------------------------------------------------------------------
--- Rechte (nur Rollen anon / authenticated)
+-- Rechte (003)
 -- ---------------------------------------------------------------------------
 
-grant select, insert, update, delete, references, trigger, truncate
+-- Nur lesen/schreiben/löschen – kein truncate (würde RLS umgehen).
+grant select, insert, update, delete
   on aspira.applications, aspira.cv, aspira.agentur_termine, aspira.agentur_aufgaben
   to authenticated;
 
--- anon hat KEINE Lese- oder Schreibrechte.
-grant references, trigger, truncate
-  on aspira.applications, aspira.cv, aspira.agentur_termine, aspira.agentur_aufgaben
-  to anon;
-
--- ---------------------------------------------------------------------------
--- Auffälligkeiten (Stand Export) – werden im Umzug/Absicherung (#49) bereinigt
--- ---------------------------------------------------------------------------
--- 1. Die Policies gelten "to public" (also auch für anon). Geschützt ist anon nur, weil
---    ihm select/insert/update/delete fehlen. Sauberer: "to authenticated".
--- 2. anon und authenticated haben truncate/trigger/references. Über die Data API ist das
---    nicht nutzbar, gehört aber trotzdem entzogen (truncate umgeht RLS).
--- 3. Die Policy auf applications hat kein "with check". Postgres nutzt dann "using" auch
---    für Schreibvorgänge – funktional gleich, aber uneinheitlich zu den anderen Tabellen.
--- 4. applications.user_id hat als einzige Tabelle kein "on delete cascade".
--- 5. updated_at hat nur einen Default, keinen Trigger: Bei Änderungen bleibt der Wert stehen,
---    sofern das Frontend ihn nicht selbst setzt (applications.update tut das nicht).
+-- anon (nicht angemeldet) hat auf den Tabellen KEINE Rechte.
