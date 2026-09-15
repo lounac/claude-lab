@@ -125,6 +125,7 @@ async function main() {
 
   const supabase = createClient(url, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    db: { schema: 'aspira' }, // seit Migration 002 (vorher: public)
   })
   const { data: login, error: loginFehler } = await supabase.auth.signInWithPassword({
     email,

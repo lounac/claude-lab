@@ -1,17 +1,24 @@
 -- Aspira – Datenbank-Schema (Supabase / Postgres)
 --
--- Stand: 2026-09-15, rekonstruiert aus dem Schema-Export (sicherung/schema-export.sql).
--- Bis dahin existierte das Schema nur im Supabase-Dashboard.
--- Diese Datei DOKUMENTIERT den Ist-Zustand – sie wird nicht automatisch ausgeführt.
+-- Ursprung: rekonstruiert am 2026-09-15 aus dem Schema-Export (sicherung/schema-export.sql).
+-- Bis dahin existierte das Schema nur im Supabase-Dashboard (Tabellen in "public").
+-- Änderungen seitdem: siehe migrationen/ – diese Datei zeigt den Stand NACH allen Migrationen.
+-- Sie DOKUMENTIERT den Ist-Zustand und wird nicht automatisch ausgeführt.
+--
+-- Das Supabase-Projekt wird mit Sapora geteilt: Aspira liegt im Schema "aspira",
+-- "public" gehört Sapora.
 --
 -- Es gibt keine Trigger und keine eigenen Funktionen.
+
+create schema aspira;
+grant usage on schema aspira to anon, authenticated, service_role; -- 001
 
 -- ---------------------------------------------------------------------------
 -- Tabellen
 -- ---------------------------------------------------------------------------
 
 -- Stellen / Bewerbungen
-create table public.applications (
+create table aspira.applications (
   id               uuid        not null default gen_random_uuid(),
   user_id          uuid        not null,
   company_name     text        not null,
@@ -41,7 +48,7 @@ create table public.applications (
 );
 
 -- Lebenslauf-Text (genau einer pro Person)
-create table public.cv (
+create table aspira.cv (
   user_id    uuid        not null,
   cv_name    text,
   cv_text    text        not null,
@@ -51,7 +58,7 @@ create table public.cv (
 );
 
 -- Termine bei der Agentur für Arbeit
-create table public.agentur_termine (
+create table aspira.agentur_termine (
   id         uuid        not null default gen_random_uuid(),
   user_id    uuid        not null,
   titel      text        not null,
@@ -64,7 +71,7 @@ create table public.agentur_termine (
 );
 
 -- Zustand der fest im Frontend definierten Checklisten-Punkte
-create table public.agentur_aufgaben (
+create table aspira.agentur_aufgaben (
   user_id    uuid        not null,
   schluessel text        not null,
   typ        text        not null, -- 'fahrplan' | 'unterlagen' | 'angebote' (nicht per Constraint geprüft)
@@ -82,26 +89,26 @@ create table public.agentur_aufgaben (
 -- Row Level Security
 -- ---------------------------------------------------------------------------
 
-alter table public.applications     enable row level security;
-alter table public.cv               enable row level security;
-alter table public.agentur_termine  enable row level security;
-alter table public.agentur_aufgaben enable row level security;
+alter table aspira.applications     enable row level security;
+alter table aspira.cv               enable row level security;
+alter table aspira.agentur_termine  enable row level security;
+alter table aspira.agentur_aufgaben enable row level security;
 
-create policy "Users can manage own applications" on public.applications
+create policy "Users can manage own applications" on aspira.applications
   for all to public
   using (auth.uid() = user_id);
 
-create policy "Users can manage own cv" on public.cv
+create policy "Users can manage own cv" on aspira.cv
   for all to public
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy "Users can manage own agentur_termine" on public.agentur_termine
+create policy "Users can manage own agentur_termine" on aspira.agentur_termine
   for all to public
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
-create policy "Users can manage own agentur_aufgaben" on public.agentur_aufgaben
+create policy "Users can manage own agentur_aufgaben" on aspira.agentur_aufgaben
   for all to public
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
@@ -111,12 +118,12 @@ create policy "Users can manage own agentur_aufgaben" on public.agentur_aufgaben
 -- ---------------------------------------------------------------------------
 
 grant select, insert, update, delete, references, trigger, truncate
-  on public.applications, public.cv, public.agentur_termine, public.agentur_aufgaben
+  on aspira.applications, aspira.cv, aspira.agentur_termine, aspira.agentur_aufgaben
   to authenticated;
 
 -- anon hat KEINE Lese- oder Schreibrechte.
 grant references, trigger, truncate
-  on public.applications, public.cv, public.agentur_termine, public.agentur_aufgaben
+  on aspira.applications, aspira.cv, aspira.agentur_termine, aspira.agentur_aufgaben
   to anon;
 
 -- ---------------------------------------------------------------------------

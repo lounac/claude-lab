@@ -16,27 +16,27 @@ select * from (
          ) as definition,
          c.ordinal_position::int as pos
   from information_schema.columns c
-  where c.table_schema = 'public' and c.table_name in (select name from tabellen)
+  where c.table_schema = 'aspira' and c.table_name in (select name from tabellen)
 
   union all
   -- 2) Constraints (Primärschlüssel, Fremdschlüssel, Unique, Check)
   select 2, rel.relname::text, 'constraint', con.conname::text, pg_get_constraintdef(con.oid), 0
   from pg_constraint con
   join pg_class rel on rel.oid = con.conrelid
-  where rel.relnamespace = 'public'::regnamespace and rel.relname in (select name from tabellen)
+  where rel.relnamespace = 'aspira'::regnamespace and rel.relname in (select name from tabellen)
 
   union all
   -- 3) Indexe
   select 3, tablename::text, 'index', indexname::text, indexdef, 0
   from pg_indexes
-  where schemaname = 'public' and tablename in (select name from tabellen)
+  where schemaname = 'aspira' and tablename in (select name from tabellen)
 
   union all
   -- 4) Row Level Security an/aus
   select 4, relname::text, 'rls', 'row level security',
          case when relrowsecurity then 'aktiv' else 'aus' end, 0
   from pg_class
-  where relnamespace = 'public'::regnamespace and relname in (select name from tabellen)
+  where relnamespace = 'aspira'::regnamespace and relname in (select name from tabellen)
 
   union all
   -- 5) RLS-Policies
@@ -48,7 +48,7 @@ select * from (
            'with check (' || with_check || ')'
          ), 0
   from pg_policies
-  where schemaname = 'public' and tablename in (select name from tabellen)
+  where schemaname = 'aspira' and tablename in (select name from tabellen)
 
   union all
   -- 6) Trigger (z. B. automatisches updated_at)
@@ -56,21 +56,21 @@ select * from (
   from pg_trigger t
   join pg_class rel on rel.oid = t.tgrelid
   where not t.tgisinternal
-    and rel.relnamespace = 'public'::regnamespace
+    and rel.relnamespace = 'aspira'::regnamespace
     and rel.relname in (select name from tabellen)
 
   union all
   -- 7) Eigene Funktionen im public-Schema (z. B. für Trigger)
   select 7, '-', 'funktion', p.proname::text, pg_get_functiondef(p.oid), 0
   from pg_proc p
-  where p.pronamespace = 'public'::regnamespace and p.prokind = 'f'
+  where p.pronamespace = 'aspira'::regnamespace and p.prokind = 'f'
 
   union all
   -- 8) Rechte der Rollen anon/authenticated
   select 8, table_name::text, 'recht', grantee::text,
          string_agg(privilege_type, ', ' order by privilege_type), 0
   from information_schema.role_table_grants
-  where table_schema = 'public'
+  where table_schema = 'aspira'
     and table_name in (select name from tabellen)
     and grantee in ('anon', 'authenticated')
   group by table_name, grantee
