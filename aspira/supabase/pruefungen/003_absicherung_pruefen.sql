@@ -36,8 +36,11 @@ begin
     insert into aspira.agentur_aufgaben (user_id, schluessel, typ)
     values ('00000000-0000-0000-0000-000000000000', 'pruefung', 'fahrplan');
     raise exception 'FEHLER: fremdes Konto konnte in agentur_aufgaben schreiben';
-  exception when insufficient_privilege then
-    null; -- erwartet: "new row violates row-level security policy"
+  exception
+    when insufficient_privilege then
+      null; -- erwartet: "new row violates row-level security policy"
+    when foreign_key_violation then
+      raise exception 'FEHLER: fremdes Konto durfte schreiben – nur der Fremdschlüssel hat es verhindert (Policies prüfen)';
   end;
 
   -- b) Eigenes Konto: sieht die eigenen Daten
