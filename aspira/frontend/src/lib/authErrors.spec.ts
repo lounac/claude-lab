@@ -18,21 +18,8 @@ describe('uebersetzeAuthFehler', () => {
     )
   })
 
-  it('erkennt ein unverändertes neues Passwort', () => {
-    expect(
-      uebersetzeAuthFehler('New password should be different from the old password.'),
-    ).toContain('unterscheiden')
-  })
-
-  it('erkennt zu viele Anfragen (z. B. Passwort-Link mehrfach angefordert)', () => {
-    expect(uebersetzeAuthFehler('email rate limit exceeded')).toContain('Zu viele Versuche')
-    expect(
-      uebersetzeAuthFehler('For security purposes, you can only request this after 42 seconds.'),
-    ).toContain('Zu viele Versuche')
-  })
-
-  it('erkennt einen abgelaufenen Passwort-Link', () => {
-    expect(uebersetzeAuthFehler('Auth session missing!')).toContain('abgelaufen')
+  it('erkennt zu viele Login-Versuche', () => {
+    expect(uebersetzeAuthFehler('Request rate limit reached')).toContain('Zu viele Versuche')
   })
 
   it('ist unabhängig von Groß-/Kleinschreibung', () => {

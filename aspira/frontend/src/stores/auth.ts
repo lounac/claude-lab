@@ -35,23 +35,6 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = data.session?.user ?? null
   }
 
-  // Schickt eine E-Mail mit einem Link zum Zurücksetzen des Passworts.
-  // Der Link führt auf /passwort-neu – diese Adresse muss in Supabase unter
-  // Authentication → URL Configuration → Redirect URLs erlaubt sein.
-  async function passwortLinkSenden(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/passwort-neu`,
-    })
-    if (error) throw error
-  }
-
-  // Setzt ein neues Passwort für die angemeldete Person.
-  // (Nach Klick auf den Link aus der E-Mail ist man automatisch angemeldet.)
-  async function passwortSetzen(passwort: string) {
-    const { error } = await supabase.auth.updateUser({ password: passwort })
-    if (error) throw error
-  }
-
   // Ausloggen.
   async function signOut() {
     const { error } = await supabase.auth.signOut()
@@ -61,5 +44,5 @@ export const useAuthStore = defineStore('auth', () => {
     cvCacheLeeren() // lokale CV-Kopie entfernen
   }
 
-  return { user, loading, init, signIn, passwortLinkSenden, passwortSetzen, signOut }
+  return { user, loading, init, signIn, signOut }
 })
