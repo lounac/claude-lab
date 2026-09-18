@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fehlerText } from '../../lib/fehler'
 // Wiederverwendbarer Checklisten-Abschnitt (ALG-Fahrplan, Unterlagen, Angebote).
 // Punkte kommen per Prop; der Erledigt-Zustand liegt in Supabase (agentur_aufgaben).
 import { ref, computed, onMounted } from 'vue'
@@ -28,7 +29,7 @@ async function umschalten(s: AufgabeDefinition, val: boolean | null) {
   try {
     await store.setErledigt(s.schluessel, props.typ, !!val)
   } catch (e) {
-    fehler.value = e instanceof Error ? e.message : 'Speichern fehlgeschlagen.'
+    fehler.value = fehlerText(e, 'Speichern fehlgeschlagen.')
   }
 }
 </script>

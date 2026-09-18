@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 import { useAuthStore } from './auth'
 import { cacheLesen, cacheSchreiben } from '../lib/applicationsCache'
 import type { Application, ApplicationInput } from '../types/application'
-import { freundlicherFehler } from '../lib/fehler'
+import { freundlicherFehler, fehlerText } from '../lib/fehler'
 
 export const useApplicationsStore = defineStore('applications', () => {
   // Start: direkt die lokale Kopie laden → Liste ist sofort da (auch offline).
@@ -29,7 +29,7 @@ export const useApplicationsStore = defineStore('applications', () => {
       items.value = data as Application[]
       cacheSchreiben(items.value) // lokale Kopie aktualisieren
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e)
+      const message = fehlerText(e)
       if (!navigator.onLine) {
         // Offline: zuletzt gespeicherte Kopie anzeigen.
         const kopie = cacheLesen()
@@ -59,7 +59,7 @@ export const useApplicationsStore = defineStore('applications', () => {
       // Offline/Fehler: in der bereits geladenen Liste (= Kopie) nachsehen.
       const ausListe = items.value.find((a) => a.id === id)
       if (ausListe) return ausListe
-      error.value = freundlicherFehler(e instanceof Error ? e.message : String(e))
+      error.value = freundlicherFehler(fehlerText(e))
       return null
     }
   }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fehlerText } from '../lib/fehler'
 import { ref, onMounted } from 'vue'
 import { useCv } from '../composables/useCv'
 import { pdfZuText } from '../lib/pdfText'
@@ -62,7 +63,7 @@ async function speichernKlick() {
     await speichern({ name: name.value || 'Lebenslauf', text: text.value })
     meldung.value = 'Lebenslauf gespeichert.'
   } catch (e) {
-    fehler.value = e instanceof Error ? e.message : 'Speichern fehlgeschlagen.'
+    fehler.value = fehlerText(e, 'Speichern fehlgeschlagen.')
   } finally {
     speichert.value = false
   }
@@ -78,7 +79,7 @@ async function loeschenKlick() {
     text.value = ''
     meldung.value = 'Lebenslauf gelöscht.'
   } catch (e) {
-    fehler.value = e instanceof Error ? e.message : 'Löschen fehlgeschlagen.'
+    fehler.value = fehlerText(e, 'Löschen fehlgeschlagen.')
   } finally {
     speichert.value = false
   }

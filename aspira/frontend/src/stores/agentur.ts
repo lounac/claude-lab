@@ -6,7 +6,7 @@ import { defineStore } from 'pinia'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from './auth'
 import type { Termin, TerminInput, AufgabenTyp, AufgabeZustand } from '../types/agentur'
-import { freundlicherFehler } from '../lib/fehler'
+import { freundlicherFehler, fehlerText } from '../lib/fehler'
 
 export const useAgenturStore = defineStore('agentur', () => {
   const termine = ref<Termin[]>([])
@@ -32,7 +32,7 @@ export const useAgenturStore = defineStore('agentur', () => {
       if (err) throw err
       termine.value = data as Termin[]
     } catch (e) {
-      error.value = freundlicherFehler(e instanceof Error ? e.message : String(e))
+      error.value = freundlicherFehler(fehlerText(e))
     } finally {
       loading.value = false
     }
@@ -92,7 +92,7 @@ export const useAgenturStore = defineStore('agentur', () => {
       for (const row of data as AufgabeZustand[]) map[row.schluessel] = row
       aufgaben.value = map
     } catch (e) {
-      error.value = freundlicherFehler(e instanceof Error ? e.message : String(e))
+      error.value = freundlicherFehler(fehlerText(e))
     }
   }
 
