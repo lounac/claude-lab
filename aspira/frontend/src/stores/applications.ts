@@ -6,7 +6,7 @@ import { defineStore } from 'pinia'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from './auth'
 import { cacheLesen, cacheSchreiben } from '../lib/applicationsCache'
-import type { Application, ApplicationInput } from '../types/application'
+import type { Application, ApplicationInput, ApplicationStatus } from '../types/application'
 import { freundlicherFehler, fehlerText } from '../lib/fehler'
 
 export const useApplicationsStore = defineStore('applications', () => {
@@ -97,6 +97,24 @@ export const useApplicationsStore = defineStore('applications', () => {
     return data as Application
   }
 
+  // Ändert NUR den Status (z. B. Merkliste → "in vorbereitung"), ohne das ganze Formular.
+  async function statusAendern(id: string, status: ApplicationStatus): Promise<Application> {
+    if (!navigator.onLine) {
+      throw new Error('Keine Internetverbindung – Speichern ist gerade nicht möglich.')
+    }
+    const { data, error: err } = await supabase
+      .from('applications')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single()
+    if (err) throw err
+    const index = items.value.findIndex((a) => a.id === id)
+    if (index !== -1) items.value[index] = data as Application
+    cacheSchreiben(items.value)
+    return data as Application
+  }
+
   async function remove(id: string): Promise<void> {
     if (!navigator.onLine) {
       throw new Error('Keine Internetverbindung – Löschen ist gerade nicht möglich.')
@@ -141,6 +159,7 @@ export const useApplicationsStore = defineStore('applications', () => {
     getById,
     create,
     update,
+    statusAendern,
     remove,
     analyseSpeichern,
   }

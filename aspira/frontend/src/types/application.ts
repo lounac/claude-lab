@@ -21,6 +21,14 @@ export const APPLICATION_STATUSES = [
 // Daraus leitet TypeScript automatisch den erlaubten Typ ab.
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
 
+// Einträge mit diesem Status stehen auf der Merkliste statt in "Meine Stellen".
+export const MERKLISTEN_STATUS: ApplicationStatus = 'interessant'
+
+// Zu welcher Liste gehört ein Eintrag mit diesem Status? (für Zurück-Wege)
+export function listenPfad(status: ApplicationStatus): '/merkliste' | '/' {
+  return status === MERKLISTEN_STATUS ? '/merkliste' : '/'
+}
+
 // So sieht eine vollständige Bewerbung aus, wie sie in der Datenbank gespeichert ist.
 export interface Application {
   id: string // eindeutige Kennung (uuid), vergibt die Datenbank

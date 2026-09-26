@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useApplicationsStore } from '../stores/applications'
-import { APPLICATION_STATUSES } from '../types/application'
+import { APPLICATION_STATUSES, MERKLISTEN_STATUS } from '../types/application'
 import type { ApplicationStatus } from '../types/application'
 import ApplicationCard from '../components/applications/ApplicationCard.vue'
 
@@ -13,15 +13,20 @@ const { items, loading, error } = storeToRefs(store)
 
 const router = useRouter()
 
+// Gemerkte Einträge ("interessant") stehen auf der eigenen Merkliste, nicht hier.
+const bewerbungen = computed(() =>
+  items.value.filter((a) => a.status !== MERKLISTEN_STATUS),
+)
+
 // Aktiver Filter: 'alle' oder ein bestimmter Status.
 const filter = ref<'alle' | ApplicationStatus>('alle')
-const statusListe = [...APPLICATION_STATUSES]
+const statusListe = APPLICATION_STATUSES.filter((s) => s !== MERKLISTEN_STATUS)
 
 // Anzahl Bewerbungen je Status (für die Zahlen im Dropdown).
 const anzahlProStatus = computed(() => {
   const zaehler: Record<string, number> = {}
   for (const s of statusListe) zaehler[s] = 0
-  for (const a of items.value) zaehler[a.status] = (zaehler[a.status] ?? 0) + 1
+  for (const a of bewerbungen.value) zaehler[a.status] = (zaehler[a.status] ?? 0) + 1
   return zaehler
 })
 
@@ -32,7 +37,7 @@ function grossAnfang(text: string): string {
 
 // Die Einträge des Filter-Dropdowns: "Alle (n)" plus jeder Status mit Anzahl.
 const filterOptionen = computed(() => [
-  { title: `Alle (${items.value.length})`, value: 'alle' },
+  { title: `Alle (${bewerbungen.value.length})`, value: 'alle' },
   ...statusListe.map((s) => ({
     title: `${grossAnfang(s)} (${anzahlProStatus.value[s]})`,
     value: s,
@@ -42,8 +47,8 @@ const filterOptionen = computed(() => [
 // Die tatsächlich angezeigte (gefilterte) Liste.
 const gefiltert = computed(() =>
   filter.value === 'alle'
-    ? items.value
-    : items.value.filter((a) => a.status === filter.value),
+    ? bewerbungen.value
+    : bewerbungen.value.filter((a) => a.status === filter.value),
 )
 
 // Beim Öffnen der Seite die Bewerbungen laden.
@@ -87,10 +92,12 @@ function neueBewerbung() {
     <v-alert v-else-if="error" type="error" class="mb-4">{{ error }}</v-alert>
 
     <!-- Noch gar keine Bewerbungen -->
-    <v-card v-else-if="items.length === 0" variant="tonal" class="pa-6 text-center">
+    <v-card v-else-if="bewerbungen.length === 0" variant="tonal" class="pa-6 text-center">
       <v-icon size="48" class="mb-2">mdi-clipboard-text-outline</v-icon>
       <p class="text-h6 mb-1">Noch keine Stellen</p>
-      <p class="text-medium-emphasis">Leg mit „Stelle hinzufügen" deine erste an.</p>
+      <p class="text-medium-emphasis">
+        Leg mit „Stelle hinzufügen" deine erste an – oder starte eine Bewerbung aus der Merkliste.
+      </p>
     </v-card>
 
     <!-- Es gibt Bewerbungen, aber keine im gewählten Filter -->

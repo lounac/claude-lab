@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApplicationsStore } from '../stores/applications'
+import { listenPfad } from '../types/application'
 import type { Application } from '../types/application'
 import StatusChip from '../components/applications/StatusChip.vue'
 import StaerkenAnalyse from '../components/applications/StaerkenAnalyse.vue'
@@ -14,6 +15,9 @@ const store = useApplicationsStore()
 const id = route.params.id as string
 const bewerbung = ref<Application | null>(null)
 const laden = ref(true)
+
+// Zurück zur passenden Liste: Merkliste oder "Meine Stellen".
+const zurueckPfad = computed(() => (bewerbung.value ? listenPfad(bewerbung.value.status) : '/'))
 
 const loeschDialog = ref(false)
 const loescht = ref(false)
@@ -36,9 +40,10 @@ function bearbeiten() {
 
 async function loeschenBestaetigt() {
   loescht.value = true
+  const ziel = zurueckPfad.value // vor dem Löschen merken
   try {
     await store.remove(id)
-    router.push('/') // zurück zur Liste
+    router.push(ziel) // zurück zur Liste
   } finally {
     loescht.value = false
     loeschDialog.value = false
@@ -48,7 +53,7 @@ async function loeschenBestaetigt() {
 
 <template>
   <v-container class="py-6" style="max-width: 640px">
-    <v-btn variant="text" prepend-icon="mdi-arrow-left" class="mb-4" to="/">
+    <v-btn variant="text" prepend-icon="mdi-arrow-left" class="mb-4" :to="zurueckPfad">
       Zurück zur Liste
     </v-btn>
 
