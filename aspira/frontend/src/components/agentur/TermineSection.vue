@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fehlerText } from '../../lib/fehler'
 // Abschnitt „Termine" im Arbeitsagentur-Bereich: anlegen/bearbeiten/löschen.
 // Anstehende Termine werden hervorgehoben, vergangene abgeblendet.
 import { ref, onMounted } from 'vue'
@@ -55,7 +56,7 @@ async function speichern() {
     else await store.createTermin(eingabe)
     dialog.value = false
   } catch (e) {
-    fehler.value = e instanceof Error ? e.message : 'Speichern fehlgeschlagen.'
+    fehler.value = fehlerText(e, 'Speichern fehlgeschlagen.')
   } finally {
     speichert.value = false
   }
@@ -67,7 +68,7 @@ async function loeschen(t: Termin) {
   try {
     await store.removeTermin(t.id)
   } catch (e) {
-    aktionsFehler.value = e instanceof Error ? e.message : 'Löschen fehlgeschlagen.'
+    aktionsFehler.value = fehlerText(e, 'Löschen fehlgeschlagen.')
   }
 }
 

@@ -6,8 +6,8 @@ import { defineStore } from 'pinia'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from './auth'
 import { cacheLesen, cacheSchreiben } from '../lib/applicationsCache'
-import type { Application, ApplicationInput } from '../types/application'
-import { freundlicherFehler } from '../lib/fehler'
+import type { Application, ApplicationInput, ApplicationStatus } from '../types/application'
+import { freundlicherFehler, fehlerText } from '../lib/fehler'
 
 export const useApplicationsStore = defineStore('applications', () => {
   // Start: direkt die lokale Kopie laden → Liste ist sofort da (auch offline).
@@ -29,7 +29,7 @@ export const useApplicationsStore = defineStore('applications', () => {
       items.value = data as Application[]
       cacheSchreiben(items.value) // lokale Kopie aktualisieren
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e)
+      const message = fehlerText(e)
       if (!navigator.onLine) {
         // Offline: zuletzt gespeicherte Kopie anzeigen.
         const kopie = cacheLesen()
@@ -59,7 +59,7 @@ export const useApplicationsStore = defineStore('applications', () => {
       // Offline/Fehler: in der bereits geladenen Liste (= Kopie) nachsehen.
       const ausListe = items.value.find((a) => a.id === id)
       if (ausListe) return ausListe
-      error.value = freundlicherFehler(e instanceof Error ? e.message : String(e))
+      error.value = freundlicherFehler(fehlerText(e))
       return null
     }
   }
@@ -87,6 +87,24 @@ export const useApplicationsStore = defineStore('applications', () => {
     const { data, error: err } = await supabase
       .from('applications')
       .update(input)
+      .eq('id', id)
+      .select()
+      .single()
+    if (err) throw err
+    const index = items.value.findIndex((a) => a.id === id)
+    if (index !== -1) items.value[index] = data as Application
+    cacheSchreiben(items.value)
+    return data as Application
+  }
+
+  // Ändert NUR den Status (z. B. Merkliste → "in vorbereitung"), ohne das ganze Formular.
+  async function statusAendern(id: string, status: ApplicationStatus): Promise<Application> {
+    if (!navigator.onLine) {
+      throw new Error('Keine Internetverbindung – Speichern ist gerade nicht möglich.')
+    }
+    const { data, error: err } = await supabase
+      .from('applications')
+      .update({ status })
       .eq('id', id)
       .select()
       .single()
@@ -141,6 +159,7 @@ export const useApplicationsStore = defineStore('applications', () => {
     getById,
     create,
     update,
+    statusAendern,
     remove,
     analyseSpeichern,
   }

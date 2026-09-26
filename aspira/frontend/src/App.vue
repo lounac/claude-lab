@@ -36,9 +36,11 @@ async function abmelden() {
 <template>
   <v-app>
     <v-app-bar color="primary" density="comfortable">
-      <!-- Haupt-Bereiche: Stellen | Agentur (nur eingeloggt) -->
+      <!-- Haupt-Bereiche: Stellen | Merkliste | Agentur (nur eingeloggt) -->
       <template v-if="auth.user">
         <v-btn icon="mdi-clipboard-text-outline" title="Meine Stellen" to="/" exact replace />
+        <v-divider vertical class="mx-1 my-3" />
+        <v-btn icon="mdi-star-outline" title="Merkliste" to="/merkliste" replace />
         <v-divider vertical class="mx-1 my-3" />
         <v-btn icon="mdi-bank-outline" title="Arbeitsagentur" to="/agentur" replace />
       </template>

@@ -2,7 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApplicationsStore } from '../stores/applications'
-import { APPLICATION_STATUSES } from '../types/application'
+import { APPLICATION_STATUSES, listenPfad } from '../types/application'
 import type { ApplicationInput, ApplicationStatus } from '../types/application'
 
 const route = useRoute()
@@ -43,6 +43,9 @@ if (
   form.status = statusAusFilter as ApplicationStatus
 }
 
+// Von welcher Liste kommt man? Dorthin führt "Abbrechen" zurück.
+const herkunftsStatus = ref<ApplicationStatus>(form.status)
+
 const fehler = ref('')
 const laeuft = ref(false)
 const laden = ref(false)
@@ -56,6 +59,7 @@ onMounted(async () => {
       form.company_name = vorhandene.company_name
       form.position = vorhandene.position
       form.status = vorhandene.status
+      herkunftsStatus.value = vorhandene.status
       form.source = vorhandene.source ?? ''
       form.contact_person = vorhandene.contact_person ?? ''
       form.application_date = vorhandene.application_date
@@ -114,7 +118,7 @@ async function speichern() {
     } else {
       await store.create(bereinigt())
     }
-    router.push('/') // zurück zur Liste
+    router.push(listenPfad(form.status)) // zur Liste, in der der Eintrag jetzt steht
   } catch (e) {
     fehler.value = fehlerText(e)
   } finally {
@@ -123,7 +127,7 @@ async function speichern() {
 }
 
 function abbrechen() {
-  router.push('/')
+  router.push(listenPfad(herkunftsStatus.value))
 }
 </script>
 
