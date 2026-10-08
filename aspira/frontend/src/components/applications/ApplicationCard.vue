@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Application } from '../../types/application'
 import StatusChip from './StatusChip.vue'
+import { datumMitAbstand } from '../../lib/datum'
 
 // Diese Karte bekommt eine Bewerbung übergeben und zeigt sie an.
 defineProps<{ application: Application }>()
@@ -35,6 +36,14 @@ defineProps<{ application: Application }>()
         >
           Chance: {{ application.interview_chance }}%
         </span>
+      </div>
+
+      <!-- Wie lange ist die Bewerbung her / wann hat sich zuletzt etwas getan? -->
+      <div class="text-caption text-medium-emphasis mt-2">
+        <div v-if="application.application_date">
+          Beworben am: {{ datumMitAbstand(application.application_date) }}
+        </div>
+        <div>Zuletzt geändert: {{ datumMitAbstand(application.updated_at) }}</div>
       </div>
     </v-card-text>
   </v-card>

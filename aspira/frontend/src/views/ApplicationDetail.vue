@@ -7,6 +7,7 @@ import type { Application } from '../types/application'
 import StatusChip from '../components/applications/StatusChip.vue'
 import StaerkenAnalyse from '../components/applications/StaerkenAnalyse.vue'
 import { analyseAktiv } from '../lib/analyse'
+import { datumMitAbstand } from '../lib/datum'
 
 const route = useRoute()
 const router = useRouter()
@@ -69,10 +70,15 @@ async function loeschenBestaetigt() {
 
       <v-card-text>
         <div
-          class="mb-4"
+          class="mb-2"
           style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"
         >
           <StatusChip :status="bewerbung.status" />
+        </div>
+
+        <!-- Wann hat sich zuletzt etwas getan? -->
+        <div class="text-caption text-medium-emphasis mb-4">
+          Zuletzt geändert: {{ datumMitAbstand(bewerbung.updated_at) }}
         </div>
 
         <v-list density="compact" class="bg-transparent">
