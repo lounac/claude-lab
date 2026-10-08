@@ -6,6 +6,8 @@ import { useApplicationsStore } from '../stores/applications'
 import { APPLICATION_STATUSES, MERKLISTEN_STATUS } from '../types/application'
 import type { ApplicationStatus } from '../types/application'
 import ApplicationCard from '../components/applications/ApplicationCard.vue'
+import { SORTIER_OPTIONEN, sortiert } from '../lib/sortierung'
+import type { Sortierfeld } from '../lib/sortierung'
 
 const store = useApplicationsStore()
 // storeToRefs hält items/loading/error reaktiv (sie aktualisieren sich automatisch).
@@ -44,11 +46,17 @@ const filterOptionen = computed(() => [
   })),
 ])
 
-// Die tatsächlich angezeigte (gefilterte) Liste.
+// Wonach sortiert wird (immer neueste zuerst).
+const sortierung = ref<Sortierfeld>('created_at')
+
+// Die tatsächlich angezeigte Liste: erst gefiltert, dann sortiert.
 const gefiltert = computed(() =>
-  filter.value === 'alle'
-    ? bewerbungen.value
-    : bewerbungen.value.filter((a) => a.status === filter.value),
+  sortiert(
+    filter.value === 'alle'
+      ? bewerbungen.value
+      : bewerbungen.value.filter((a) => a.status === filter.value),
+    sortierung.value,
+  ),
 )
 
 // Beim Öffnen der Seite die Bewerbungen laden.
@@ -71,17 +79,27 @@ function neueBewerbung() {
       Stelle hinzufügen
     </v-btn>
 
-    <!-- Filter: Auswahlmenü (platzsparend auch auf dem Handy) -->
-    <v-select
-      v-model="filter"
-      :items="filterOptionen"
-      label="Filter nach Status"
-      density="comfortable"
-      variant="outlined"
-      hide-details
-      class="mb-4"
-      style="max-width: 320px"
-    />
+    <!-- Filter + Sortierung: Auswahlmenüs (platzsparend auch auf dem Handy) -->
+    <div class="d-flex flex-wrap mb-4" style="gap: 12px">
+      <v-select
+        v-model="filter"
+        :items="filterOptionen"
+        label="Filter nach Status"
+        density="comfortable"
+        variant="outlined"
+        hide-details
+        style="max-width: 320px; min-width: 220px"
+      />
+      <v-select
+        v-model="sortierung"
+        :items="SORTIER_OPTIONEN"
+        label="Sortieren nach"
+        density="comfortable"
+        variant="outlined"
+        hide-details
+        style="max-width: 240px; min-width: 180px"
+      />
+    </div>
 
     <!-- Während des Ladens -->
     <div v-if="loading" class="text-center py-8">
