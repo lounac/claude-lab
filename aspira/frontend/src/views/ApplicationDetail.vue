@@ -76,12 +76,9 @@ async function loeschenBestaetigt() {
           <StatusChip :status="bewerbung.status" />
         </div>
 
-        <!-- Wie lange ist die Bewerbung her / wann hat sich zuletzt etwas getan? -->
+        <!-- Wann hat sich zuletzt etwas getan? -->
         <div class="text-caption text-medium-emphasis mb-4">
-          <div v-if="bewerbung.application_date">
-            Beworben am: {{ datumMitAbstand(bewerbung.application_date) }}
-          </div>
-          <div>Zuletzt geändert: {{ datumMitAbstand(bewerbung.updated_at) }}</div>
+          Zuletzt geändert: {{ datumMitAbstand(bewerbung.updated_at) }}
         </div>
 
         <v-list density="compact" class="bg-transparent">
