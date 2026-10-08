@@ -70,16 +70,18 @@ async function loeschenBestaetigt() {
 
       <v-card-text>
         <div
-          class="mb-4"
+          class="mb-2"
           style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"
         >
           <StatusChip :status="bewerbung.status" />
-          <span v-if="bewerbung.application_date" class="text-caption text-medium-emphasis">
+        </div>
+
+        <!-- Wie lange ist die Bewerbung her / wann hat sich zuletzt etwas getan? -->
+        <div class="text-caption text-medium-emphasis mb-4">
+          <div v-if="bewerbung.application_date">
             Beworben am: {{ datumMitAbstand(bewerbung.application_date) }}
-          </span>
-          <span class="text-caption text-medium-emphasis">
-            Zuletzt geändert: {{ datumMitAbstand(bewerbung.updated_at) }}
-          </span>
+          </div>
+          <div>Zuletzt geändert: {{ datumMitAbstand(bewerbung.updated_at) }}</div>
         </div>
 
         <v-list density="compact" class="bg-transparent">
