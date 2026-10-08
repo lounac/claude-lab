@@ -86,12 +86,6 @@ async function loeschenBestaetigt() {
 
         <v-list density="compact" class="bg-transparent">
           <v-list-item
-            v-if="bewerbung.application_date"
-            prepend-icon="mdi-calendar"
-            :title="bewerbung.application_date"
-            subtitle="Beworben am"
-          />
-          <v-list-item
             v-if="bewerbung.next_deadline"
             prepend-icon="mdi-calendar-clock"
             :title="bewerbung.next_deadline"
